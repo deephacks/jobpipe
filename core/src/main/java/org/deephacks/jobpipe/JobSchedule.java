@@ -94,6 +94,10 @@ public class JobSchedule {
 
   private List<Node> execute(String taskId) {
     List<Node> jobSchedule = getJobSchedule(taskId);
+    if (jobSchedule.isEmpty()) {
+      logger.info("Nothing to execute.");
+      return new ArrayList<>();
+    }
     schedule.addAll(jobSchedule);
     for (Node n : jobSchedule) {
       new ScheduleTask(n).schedule();
