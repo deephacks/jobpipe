@@ -58,7 +58,7 @@
 
   <modules>
     <module>core</module>
-    <module>app</module>
+    <module>cli</module>
   </modules>
 
   <build>
