@@ -53,10 +53,12 @@ public class JobSchedulerTest {
       .task(Task1.class).id("2").timeRange(MINUTE).depIds("0", "3").addTask()
       .task(Task1.class).id("7").timeRange(MINUTE).depIds("6").addTask()
       .task(Task1.class).id("8").timeRange(MINUTE).depIds("7").addTask()
-      .execute("9");
+      .execute("6");
     List<String> taskIds = schedule.getScheduledTasks().stream()
       .map(task -> task.getContext().getId()).collect(Collectors.toList());
-    assertThat(taskIds.size(), is(4));
+    assertThat(taskIds.size(), is(6));
+    assertTrue(taskIds.contains("4"));
+    assertTrue(taskIds.contains("6"));
     assertTrue(taskIds.contains("9"));
     assertTrue(taskIds.contains("10"));
     assertTrue(taskIds.contains("11"));

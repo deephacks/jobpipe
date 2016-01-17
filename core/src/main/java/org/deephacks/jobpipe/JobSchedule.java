@@ -48,15 +48,8 @@ public class JobSchedule {
     if (graph == null || graph.size() == 0) {
       return graph;
     }
-
     if (taskId != null) {
-      ListIterator<Node> it = graph.listIterator();
-      while (it.hasNext()) {
-        Node n = it.next();
-        if (!n.getId().equals(taskId)) {
-          it.remove();
-        }
-      }
+      graph = createGraphFrom(taskId, graph);
     }
     // keep track of all neighbours
     HashMap<Node, Integer> neighbours = new HashMap<>();
@@ -85,6 +78,17 @@ public class JobSchedule {
       }
     }
     Collections.reverse(result);
+    return result;
+  }
+
+  private List<Node> createGraphFrom(String taskId, List<Node> graph) {
+    ArrayList<Node> result = new ArrayList<>();
+    for (Node node : graph) {
+      if (node.getId().equals(taskId)) {
+        result.add(node);
+        result.addAll(node.getDependencies());
+      }
+    }
     return result;
   }
 
