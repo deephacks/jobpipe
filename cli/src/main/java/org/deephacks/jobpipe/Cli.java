@@ -15,15 +15,17 @@ public class Cli {
     parser.formatHelpWith(new OptionFormatter());
     parser.allowsUnrecognizedOptions();
 
-    OptionSpec<String> optRange = parser.accepts("range", "Date range for job to process, ex 2016-01, 2013-W12, 2016-10-11, 2013-12-01T12")
+    OptionSpec<String> optRange = parser.accepts("range", "Date range for job to process, " +
+      "ex 2016-01, 2013-W12, 2016-10-11, 2013-12-01T12")
       .withRequiredArg().ofType(String.class).describedAs("range");
 
-    OptionSpec<String> optTaskId = parser.accepts("task", "Task to execute")
+    OptionSpec<String> optTaskId = parser.accepts("task", "Task to execute, or nothing for everything.")
       .withRequiredArg().ofType(String.class).describedAs("task");
 
-    parser.accepts("h", "Help");
+    parser.accepts("h", "Display help");
 
-    OptionSpec<String> clsOpt = parser.nonOptions("Class to run").describedAs("cls");
+    OptionSpec<String> clsOpt = parser.nonOptions("Class to run the implements a Pipeline")
+      .describedAs("cls");
     OptionSet options = parser.parse(args);
     List<String> argList = options.valuesOf(clsOpt);
     String cls = null;
