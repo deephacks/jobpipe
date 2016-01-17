@@ -25,6 +25,10 @@ public class JobSchedule {
     return new JobScheduleBuilder(timeFormat);
   }
 
+  public static JobScheduleBuilder newSchedule(TimeRange range) {
+    return new JobScheduleBuilder(range);
+  }
+
   private List<Node> getJobSchedule() {
     List<Node> nodes = tasks.values().stream()
       .flatMap(tasks -> tasks.stream())
@@ -49,7 +53,7 @@ public class JobSchedule {
     }
 
     // add root nodes
-   Queue<Node> queue = new LinkedList<>();
+    Queue<Node> queue = new LinkedList<>();
     for (Node node : graph) {
       if (!neighbours.containsKey(node)) {
         queue.offer(node);
@@ -155,6 +159,10 @@ public class JobSchedule {
       this.timeRange = new TimeRange(timeFormat);
     }
 
+    private JobScheduleBuilder(TimeRange range) {
+      this.timeRange = range;
+    }
+
     public TaskBuilder task(Class<? extends Task> cls) {
       return new TaskBuilder(cls, this);
     }
@@ -172,6 +180,17 @@ public class JobSchedule {
     public JobSchedule execute() {
       JobSchedule jobSchedule = new JobSchedule(this);
       jobSchedule.execute();
+      new Thread(() -> {
+        while (!jobSchedule.isFinished()) {
+          try {
+            Thread.sleep(100);
+          } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+        }
+        jobSchedule.getJobSchedule().stream()
+          .forEach(node -> node.getExecutor().shutdownNow());
+      }).start();
       return jobSchedule;
     }
   }
