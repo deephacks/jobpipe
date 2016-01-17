@@ -29,6 +29,10 @@ public class TaskContext {
     return path.toFile().exists();
   }
 
+  public String getId() {
+    return id;
+  }
+
   public Path getPath() {
     return path;
   }

@@ -21,6 +21,10 @@ public class JobSchedule {
     this.tasks = builder.tasks;
   }
 
+  public static JobScheduleBuilder newSchedule(PipelineContext context) {
+    return new JobScheduleBuilder(context);
+  }
+
   public static JobScheduleBuilder newSchedule(String timeFormat) {
     return new JobScheduleBuilder(timeFormat);
   }
@@ -29,20 +33,30 @@ public class JobSchedule {
     return new JobScheduleBuilder(range);
   }
 
-  private List<Node> getJobSchedule() {
+  private List<Node> getJobSchedule(String taskId) {
     List<Node> nodes = tasks.values().stream()
       .flatMap(tasks -> tasks.stream())
       .collect(Collectors.toList());
-    return getJobSchedule(nodes);
+    return getJobSchedule(nodes, taskId);
   }
 
   /**
    * Breadth first search.
    */
-  private List<Node> getJobSchedule(List<Node> graph) {
+  private List<Node> getJobSchedule(List<Node> graph, String taskId) {
     ArrayList<Node> result = new ArrayList<>();
     if (graph == null || graph.size() == 0) {
       return graph;
+    }
+
+    if (taskId != null) {
+      ListIterator<Node> it = graph.listIterator();
+      while (it.hasNext()) {
+        Node n = it.next();
+        if (!n.getId().equals(taskId)) {
+          it.remove();
+        }
+      }
     }
     // keep track of all neighbours
     HashMap<Node, Integer> neighbours = new HashMap<>();
@@ -51,7 +65,6 @@ public class JobSchedule {
         neighbours.compute(neighbour, (key, val) -> val == null ? 1 : val + 1);
       }
     }
-
     // add root nodes
     Queue<Node> queue = new LinkedList<>();
     for (Node node : graph) {
@@ -75,8 +88,8 @@ public class JobSchedule {
     return result;
   }
 
-  private List<Node> execute() {
-    List<Node> jobSchedule = getJobSchedule();
+  private List<Node> execute(String taskId) {
+    List<Node> jobSchedule = getJobSchedule(taskId);
     schedule.addAll(jobSchedule);
     for (Node n : jobSchedule) {
       new ScheduleTask(n).schedule();
@@ -163,6 +176,10 @@ public class JobSchedule {
       this.timeRange = range;
     }
 
+    public JobScheduleBuilder(PipelineContext context) {
+      this.timeRange = context.range;
+    }
+
     public TaskBuilder task(Class<? extends Task> cls) {
       return new TaskBuilder(cls, this);
     }
@@ -178,8 +195,16 @@ public class JobSchedule {
     }
 
     public JobSchedule execute() {
+      return execute((String) null);
+    }
+
+    public JobSchedule execute(Class<? extends Task> task) {
+      return execute(task.getSimpleName());
+    }
+
+    public JobSchedule execute(String taskId) {
       JobSchedule jobSchedule = new JobSchedule(this);
-      jobSchedule.execute();
+      jobSchedule.execute(taskId);
       new Thread(() -> {
         while (!jobSchedule.isFinished()) {
           try {
@@ -188,12 +213,13 @@ public class JobSchedule {
             throw new RuntimeException(e);
           }
         }
-        jobSchedule.getJobSchedule().stream()
+        jobSchedule.getJobSchedule(taskId).stream()
           .forEach(node -> node.getExecutor().shutdownNow());
       }).start();
       return jobSchedule;
     }
   }
+
 
   public static class TaskBuilder {
     private final Class<? extends Task> cls;
