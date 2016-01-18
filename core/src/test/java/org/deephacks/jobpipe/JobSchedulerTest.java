@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertTrue;
@@ -110,12 +111,11 @@ public class JobSchedulerTest {
 
   @Test
   public void testDifferentTaskTypes() throws InterruptedException {
+    ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     JobSchedule.newSchedule("2016-01-17T15:16")
       .task(Task1.class)
       .timeRange(SECOND).add()
-      .task(Task2.class)
-      .deps(Task1.class)
-      .executor(Executors.newSingleThreadScheduledExecutor()).add()
+      .task(Task2.class).deps(Task1.class).executor(executor).add()
       .execute().awaitFinish();
   }
 }
