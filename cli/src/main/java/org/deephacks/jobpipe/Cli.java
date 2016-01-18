@@ -60,7 +60,7 @@ public class Cli {
     Pattern pattern = Pattern.compile(cls);
     for (Pipeline pipeline : pipelines) {
       if (pattern.matcher(pipeline.getClass().getName()).find()) {
-        PipelineContext context = new PipelineContext(range, taskId);
+        PipelineContext context = new PipelineContext(range, taskId, args);
         System.out.println("Executing " + pipeline.getClass().getName() + " for "  + range);
         pipeline.execute(context);
       }

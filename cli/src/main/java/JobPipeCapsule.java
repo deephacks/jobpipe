@@ -4,6 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Extends capsule classpath by first adding 'lib' directory in same directory as jar,
+ * and also enables user to specify additional directories using 'jobpipe.cp' env prop:
+ * java -Djobpipe.cp=/tmp/cp1:/tmp/cp2 -jar jobpipe-0.0.1-SNAPSHOT-cli.jar
+ */
 public class JobPipeCapsule extends Capsule {
   protected JobPipeCapsule(Capsule pred) {
     super(pred);
