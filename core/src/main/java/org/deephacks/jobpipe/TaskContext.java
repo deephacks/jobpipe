@@ -12,11 +12,13 @@ public class TaskContext {
   final String id;
   final Node node;
   final Path path;
+  final String[] args;
 
   TaskContext(Node node) {
     this.id = node.getId();
     this.node = node;
     this.path = Paths.get(Config.BASE_PATH + "/tasks/" + id + "/" + node.getRange().format());
+    this.args = node.getArgs();
   }
 
   public boolean isFinished() {
@@ -29,6 +31,10 @@ public class TaskContext {
 
   public Path getPath() {
     return path;
+  }
+
+  public String[] getArgs() {
+    return args;
   }
 
   public Path createPath() {

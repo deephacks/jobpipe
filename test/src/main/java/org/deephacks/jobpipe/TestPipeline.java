@@ -17,11 +17,11 @@ public class TestPipeline implements Pipeline {
       System.out.println("Found option: " + options.valueOf(optTest));
     }
 
-    JobSchedule.newSchedule(context.range)
+    JobSchedule.newSchedule(context)
       .task(TestTask.class).id("1").timeRange(TimeRangeType.SECOND).addTask()
       .task(TestTask.class).id("2").timeRange(TimeRangeType.SECOND).depIds("1").addTask()
       .task(TestTask.class).id("3").timeRange(TimeRangeType.SECOND).depIds("2").addTask()
-      .execute(context.taskId)
+      .execute()
       .awaitFinish();
   }
 }

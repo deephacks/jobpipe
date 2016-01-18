@@ -1,5 +1,7 @@
 package org.deephacks.jobpipe;
 
+import java.util.Arrays;
+
 public class TestTask extends Task {
 
   public TestTask(TaskContext context) {
@@ -8,6 +10,7 @@ public class TestTask extends Task {
 
   @Override
   public void execute() {
+    System.out.println(Arrays.asList(getContext().getArgs()));
     System.out.println(getContext().createPath());
   }
 

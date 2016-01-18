@@ -13,13 +13,15 @@ class Node {
   private final List<Node> dependencies = new ArrayList<>();
   private final Task task;
   private final ScheduledExecutorService executor;
+  private final String[] args;
 
-  Node(String id, Class<? extends Task> cls, TimeRange range, ScheduledExecutorService executor) {
+  Node(String id, Class<? extends Task> cls, TimeRange range, ScheduledExecutorService executor, String[] args) {
     this.id = id;
     this.range = range;
+    this.args = args;
+    this.executor = executor;
     this.context = new TaskContext(this);
     this.task = newTask(cls, context);
-    this.executor = executor;
   }
 
   void execute() {
@@ -36,6 +38,10 @@ class Node {
 
   Task getTask() {
     return task;
+  }
+
+  public String[] getArgs() {
+    return args;
   }
 
   String getId() {

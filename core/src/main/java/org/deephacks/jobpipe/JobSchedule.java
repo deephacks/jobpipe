@@ -172,6 +172,8 @@ public class JobSchedule {
     private TimeRange timeRange;
     private Map<String, List<Node>> tasks = new HashMap<>();
     private ScheduledExecutorService defaultScheduler;
+    private String taskId;
+    private String[] args;
 
     private JobScheduleBuilder(String timeFormat) {
       this.timeRange = new TimeRange(timeFormat);
@@ -183,6 +185,18 @@ public class JobSchedule {
 
     public JobScheduleBuilder(PipelineContext context) {
       this.timeRange = context.range;
+      this.args = context.args;
+      this.taskId = context.taskId;
+    }
+
+    public JobScheduleBuilder targetTask(Class<? extends Task> cls) {
+      this.taskId = cls.getSimpleName();
+      return this;
+    }
+
+    public JobScheduleBuilder targetTask(String taskId) {
+      this.taskId = taskId;
+      return this;
     }
 
     public TaskBuilder task(Class<? extends Task> cls) {
@@ -195,14 +209,6 @@ public class JobSchedule {
     }
 
     public JobSchedule execute() {
-      return execute((String) null);
-    }
-
-    public JobSchedule execute(Class<? extends Task> task) {
-      return execute(task.getSimpleName());
-    }
-
-    public JobSchedule execute(String taskId) {
       JobSchedule jobSchedule = new JobSchedule(this);
       jobSchedule.execute(taskId);
       new Thread(() -> {
@@ -291,7 +297,7 @@ public class JobSchedule {
         ScheduledExecutorService executor = Optional.ofNullable(this.executor)
           .orElseGet(() -> jobScheduleBuilder.defaultScheduler = Optional.ofNullable(jobScheduleBuilder.defaultScheduler)
             .orElseGet(() -> Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors())));
-        Node node = new Node(id, cls, range, executor);
+        Node node = new Node(id, cls, range, executor, jobScheduleBuilder.args);
         for (String dep : deps) {
           List<Node> nodes = jobScheduleBuilder.tasks.get(dep);
           if (nodes == null) {
