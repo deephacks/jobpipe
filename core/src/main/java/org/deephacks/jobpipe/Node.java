@@ -14,10 +14,10 @@ class Node {
   private final Task task;
   private final ScheduledExecutorService executor;
 
-  Node(String id, Class<? extends Task> cls, TimeRange range, Properties props, ScheduledExecutorService executor) {
+  Node(String id, Class<? extends Task> cls, TimeRange range, ScheduledExecutorService executor) {
     this.id = id;
     this.range = range;
-    this.context = new TaskContext(this, props);
+    this.context = new TaskContext(this);
     this.task = newTask(cls, context);
     this.executor = executor;
   }

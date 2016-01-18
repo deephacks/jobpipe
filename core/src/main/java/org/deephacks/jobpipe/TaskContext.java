@@ -12,17 +12,11 @@ public class TaskContext {
   final String id;
   final Node node;
   final Path path;
-  final Properties props;
 
-  TaskContext(Node node, Properties props) {
+  TaskContext(Node node) {
     this.id = node.getId();
     this.node = node;
     this.path = Paths.get(Config.BASE_PATH + "/tasks/" + id + "/" + node.getRange().format());
-    this.props = props;
-  }
-
-  public String getProperty(String name, String defaultValue) {
-    return props.getProperty(name, defaultValue);
   }
 
   public boolean isFinished() {

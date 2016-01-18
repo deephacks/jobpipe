@@ -11,13 +11,11 @@ public class JobSchedule {
   private static final Logger logger = LoggerFactory.getLogger(JobSchedule.class);
   private final TimeRange timeRange;
   private final Map<String, List<Node>> tasks;
-  private final Properties properties;
   private final ConcurrentLinkedDeque<ScheduledFuture<?>> scheduleHandles = new ConcurrentLinkedDeque<>();
   private final List<Node> schedule = new ArrayList<>();
 
   private JobSchedule(JobScheduleBuilder builder) {
     this.timeRange = builder.timeRange;
-    this.properties = Optional.ofNullable(builder.properties).orElse(new Properties());
     this.tasks = builder.tasks;
   }
 
@@ -173,7 +171,6 @@ public class JobSchedule {
   public static class JobScheduleBuilder {
     private TimeRange timeRange;
     private Map<String, List<Node>> tasks = new HashMap<>();
-    private Properties properties;
     private ScheduledExecutorService defaultScheduler;
 
     private JobScheduleBuilder(String timeFormat) {
@@ -194,11 +191,6 @@ public class JobSchedule {
 
     public JobScheduleBuilder executor(ScheduledExecutorService executor) {
       this.defaultScheduler = executor;
-      return this;
-    }
-
-    public JobScheduleBuilder properties(Properties properties) {
-      this.properties = properties;
       return this;
     }
 
@@ -299,7 +291,7 @@ public class JobSchedule {
         ScheduledExecutorService executor = Optional.ofNullable(this.executor)
           .orElseGet(() -> jobScheduleBuilder.defaultScheduler = Optional.ofNullable(jobScheduleBuilder.defaultScheduler)
             .orElseGet(() -> Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors())));
-        Node node = new Node(id, cls, range, jobScheduleBuilder.properties, executor);
+        Node node = new Node(id, cls, range, executor);
         for (String dep : deps) {
           List<Node> nodes = jobScheduleBuilder.tasks.get(dep);
           if (nodes == null) {
