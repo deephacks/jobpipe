@@ -2,17 +2,10 @@ package org.deephacks.jobpipe;
 
 import joptsimple.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.*;
 import java.util.regex.Pattern;
 
 public class Cli {
-  /** files to put on current thread class loader */
-  private static final List<File> classpath = new ArrayList<>();
 
   public static void main(String[] args) throws Exception {
     OptionParser parser = new OptionParser();
@@ -28,7 +21,8 @@ public class Cli {
 
     parser.accepts("h", "Display help");
 
-    OptionSpec<String> clsOpt = parser.nonOptions("Class to run the implements a Pipeline")
+    OptionSpec<String> clsOpt = parser.nonOptions("Class regexp to run that implements a Pipeline " +
+      "as a META-INF/services/org.deephacks.jobpipe.Pipeline")
       .describedAs("cls");
     OptionSet options = parser.parse(args);
     List<String> argList = options.valuesOf(clsOpt);
