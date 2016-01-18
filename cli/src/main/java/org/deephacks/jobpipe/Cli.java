@@ -2,15 +2,19 @@ package org.deephacks.jobpipe;
 
 import joptsimple.*;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
+import java.util.regex.Pattern;
 
 public class Cli {
+  /** files to put on current thread class loader */
+  private static final List<File> classpath = new ArrayList<>();
 
-  public static void main(String[] args) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+  public static void main(String[] args) throws Exception {
     OptionParser parser = new OptionParser();
     parser.formatHelpWith(new OptionFormatter());
     parser.allowsUnrecognizedOptions();
@@ -51,9 +55,16 @@ public class Cli {
     if (options.has("task")) {
       taskId = options.valueOf(optTaskId);
     }
-    Pipeline pipeline = (Pipeline) Class.forName(cls).newInstance();
-    PipelineContext context = new PipelineContext(range, taskId);
-    pipeline.execute(context);
+
+    ServiceLoader<Pipeline> pipelines = ServiceLoader.load(Pipeline.class);
+    Pattern pattern = Pattern.compile(cls);
+    for (Pipeline pipeline : pipelines) {
+      if (pattern.matcher(pipeline.getClass().getName()).find()) {
+        PipelineContext context = new PipelineContext(range, taskId);
+        System.out.println("Executing " + pipeline.getClass().getName() + " for "  + range);
+        pipeline.execute(context);
+      }
+    }
   }
 
   static class OptionFormatter implements HelpFormatter {

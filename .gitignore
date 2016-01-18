@@ -1,8 +1,8 @@
 .classpath
 .project
 *.log
-*.iml
-*.idea
+**.iml
+**.idea
 *.out
 .metadata
 .settings/
