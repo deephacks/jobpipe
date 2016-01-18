@@ -276,7 +276,7 @@ public class JobSchedule {
       return this;
     }
 
-    public JobScheduleBuilder addTask() {
+    public JobScheduleBuilder add() {
       TaskSpec taskSpec = cls.getAnnotation(TaskSpec.class);
       if (taskSpec != null) {
         if (timeRangeType == null) {
