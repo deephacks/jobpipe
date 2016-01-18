@@ -20,9 +20,17 @@ public class JobPipeCapsule extends Capsule {
       final List<Object> args = new ArrayList<>(super.attribute(ATTR_APP_CLASS_PATH));
       ArrayList<String> dirs = new ArrayList<>();
       dirs.add(new File(getJarFile().toFile().getParent(), "lib").getAbsolutePath());
-      String dirsString = System.getProperty("jobpipe.cp");
-      if (dirsString != null && !dirsString.isEmpty()) {
-        dirs.addAll(Arrays.asList(dirsString.split(":")));
+      String cpStr = System.getProperty("jobpipe.cp");
+      if (cpStr != null && !cpStr.isEmpty()) {
+        List<String> cps = Arrays.asList(cpStr.split(":"));
+        for (String cp : cps) {
+          if (cp.startsWith("$")) {
+            String property = System.getProperty(cp.substring(1, cp.length()));
+            dirs.add(property);
+          } else {
+            dirs.add(cp);
+          }
+        }
       }
       for (String dir : dirs) {
         File file = new File(dir);
