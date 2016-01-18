@@ -1,7 +1,5 @@
 package org.deephacks.jobpipe;
 
-import java.io.File;
-
 public class Tasks {
 
   @TaskSpec(timeRange = TimeRangeType.DAY)
@@ -13,28 +11,13 @@ public class Tasks {
 
     @Override
     public void execute() {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
+      sleep(100);
       getContext().createPath();
     }
 
     @Override
     public TaskOutput getOutput() {
-      File file = getContext().getPath().toFile();
-      return new TaskOutput() {
-        @Override
-        public boolean exist() {
-          return file.exists();
-        }
-
-        @Override
-        public Object get() {
-          return file;
-        }
-      };
+      return new FileOutput(getContext().getPath().toFile());
     }
   }
 
@@ -47,29 +30,21 @@ public class Tasks {
 
     @Override
     public void execute() {
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
+      sleep(100);
       getContext().createPath();
     }
 
     @Override
     public TaskOutput getOutput() {
-      File file = getContext().getPath().toFile();
-      return new TaskOutput() {
-        @Override
-        public boolean exist() {
-          return file.exists();
-        }
-
-        @Override
-        public Object get() {
-          return file;
-        }
-      };
+      return new FileOutput(getContext().getPath().toFile());
     }
   }
 
+  private static void sleep(long ms) {
+    try {
+      Thread.sleep(ms);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
