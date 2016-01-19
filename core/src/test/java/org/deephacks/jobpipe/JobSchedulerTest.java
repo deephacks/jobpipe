@@ -4,13 +4,17 @@ import org.deephacks.jobpipe.Tasks.Task1;
 import org.deephacks.jobpipe.Tasks.Task2;
 import org.junit.Test;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 import static org.deephacks.jobpipe.TimeRangeType.*;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
@@ -21,7 +25,7 @@ public class JobSchedulerTest {
    */
   @Test
   public void testDirectedAsyclicGraph() {
-    JobSchedule.newSchedule("2015-11-11T10:00")
+    JobSchedule schedule = JobSchedule.newSchedule("2015-01-14T10:00")
       .task(Task1.class).id("1").timeRange(MINUTE).add()
       .task(Task1.class).id("4").timeRange(MINUTE).add()
       .task(Task1.class).id("10").timeRange(MINUTE).add()
@@ -35,12 +39,18 @@ public class JobSchedulerTest {
       .task(Task1.class).id("2").timeRange(MINUTE).depIds("0", "3").add()
       .task(Task1.class).id("7").timeRange(MINUTE).depIds("6").add()
       .task(Task1.class).id("8").timeRange(MINUTE).depIds("7").add()
-      .execute().awaitFinish();
+      .execute();
+    List<String> taskIds = schedule.getScheduledTasks().stream()
+      .map(task -> task.getContext().getId()).collect(Collectors.toList());
+    assertThat(taskIds.size(), is(13));
+    assertTrue(taskIds.containsAll(Arrays.asList(
+      "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")));
+    schedule.awaitFinish();
   }
 
   @Test
   public void testExecuteTaskId() {
-    JobSchedule schedule = JobSchedule.newSchedule("2015-11-11T10:00")
+    JobSchedule schedule = JobSchedule.newSchedule("2015-12-01T10:00")
       .task(Task1.class).id("1").timeRange(MINUTE).add()
       .task(Task1.class).id("4").timeRange(MINUTE).add()
       .task(Task1.class).id("10").timeRange(MINUTE).add()
@@ -59,18 +69,17 @@ public class JobSchedulerTest {
     List<String> taskIds = schedule.getScheduledTasks().stream()
       .map(task -> task.getContext().getId()).collect(Collectors.toList());
     assertThat(taskIds.size(), is(6));
-    assertTrue(taskIds.contains("4"));
-    assertTrue(taskIds.contains("6"));
-    assertTrue(taskIds.contains("9"));
-    assertTrue(taskIds.contains("10"));
-    assertTrue(taskIds.contains("11"));
-    assertTrue(taskIds.contains("12"));
+    assertTrue(taskIds.containsAll(Arrays.asList(
+      "4", "6", "9", "10", "11", "12")));
     schedule.awaitFinish();
   }
 
   @Test
   public void testExecutePipelineContext() {
-    PipelineContext context = new PipelineContext(new TimeRange("2015-11-11T10:00"), "6", new String[]{"hello"});
+    TimeRange range = new TimeRange("2012-10-10T10:00");
+    String taskId = "0";
+    String[] args = new String[] {"hello"};
+    PipelineContext context = new PipelineContext(range, taskId, args);
     JobSchedule schedule = JobSchedule.newSchedule(context)
       .task(Task1.class).id("1").timeRange(MINUTE).add()
       .task(Task1.class).id("4").timeRange(MINUTE).add()
@@ -88,13 +97,9 @@ public class JobSchedulerTest {
       .execute();
     List<String> taskIds = schedule.getScheduledTasks().stream()
       .map(task -> task.getContext().getId()).collect(Collectors.toList());
-    assertThat(taskIds.size(), is(6));
-    assertTrue(taskIds.contains("4"));
-    assertTrue(taskIds.contains("6"));
-    assertTrue(taskIds.contains("9"));
-    assertTrue(taskIds.contains("10"));
-    assertTrue(taskIds.contains("11"));
-    assertTrue(taskIds.contains("12"));
+    assertThat(taskIds.size(), is(9));
+    assertTrue(taskIds.containsAll(Arrays.asList(
+      "4", "6", "9", "10", "11", "12", "0", "1")));
     schedule.awaitFinish();
   }
 
@@ -103,18 +108,73 @@ public class JobSchedulerTest {
    */
   @Test
   public void testSameTaskDifferentTimeRange() throws InterruptedException {
-    JobSchedule.newSchedule("2016-01-17T15:16")
+    JobSchedule schedule = JobSchedule.newSchedule("2011-10-17T15:16")
       .task(Task1.class).id("1-sec").timeRange(SECOND).add()
       .task(Task1.class).id("1-min").timeRange(MINUTE).depIds("1-sec").add()
-      .execute().awaitFinish();
+      .execute();
+    List<Task> tasks = schedule.getScheduledTasks();
+    assertThat(tasks.size(), is(60 + 1));
+    schedule.awaitFinish();
+  }
+
+  @Test
+  public void testTooShortTimePeriod() throws InterruptedException {
+    try {
+      JobSchedule.newSchedule("2006-01-17T15:16:01")
+        .task(Task1.class).id("1-min").timeRange(MINUTE).add()
+        .execute();
+      fail("should fail");
+    } catch (IllegalArgumentException e) {
+      assertThat(e.getMessage(), containsString("less than task time range"));
+    }
+  }
+
+  @Test
+  public void testMissingDep() throws InterruptedException {
+    try {
+      JobSchedule.newSchedule("2000-01-17T15:16")
+        .task(Task1.class).id("1-min").timeRange(MINUTE).depIds("missing").add()
+        .execute();
+      fail("should fail");
+    } catch (IllegalArgumentException e) {
+      assertThat(e.getMessage(), containsString("missing"));
+    }
   }
 
   @Test
   public void testDifferentTaskTypes() throws InterruptedException {
     ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    JobSchedule.newSchedule("2016-01-17T15:16")
+    JobSchedule.newSchedule("2011-01-17T15:16")
       .task(Task1.class).timeRange(SECOND).add()
       .task(Task2.class).deps(Task1.class).executor(executor).add()
       .execute().awaitFinish();
+  }
+
+  @Test
+  public void testOutputFromDependency() throws InterruptedException {
+    JobSchedule.newSchedule("2013-01-17T15:16")
+      .task(Task1.class).timeRange(SECOND).add()
+      .task(CheckOutputTask.class).timeRange(TimeRangeType.MINUTE).deps(Task1.class).add()
+      .execute().awaitFinish();
+  }
+
+
+  public static class CheckOutputTask extends Task {
+
+    public CheckOutputTask(TaskContext context) {
+      super(context);
+    }
+
+    @Override
+    public void execute() {
+      List<File> output = getContext().getDependecyOutput().stream()
+        .map(o -> (File) o.get()).collect(Collectors.toList());
+      assertThat(output.size(), is(60));
+    }
+
+    @Override
+    public TaskOutput getOutput() {
+      return new FileOutput(getContext().getPath().toFile());
+    }
   }
 }
