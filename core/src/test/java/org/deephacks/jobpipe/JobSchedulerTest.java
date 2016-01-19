@@ -9,10 +9,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
+import static org.deephacks.jobpipe.Tasks.sleep;
 import static org.deephacks.jobpipe.TimeRangeType.*;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.core.Is.is;
@@ -107,7 +110,7 @@ public class JobSchedulerTest {
    * Test that same task class can be scheduled with different time range types.
    */
   @Test
-  public void testSameTaskDifferentTimeRange() throws InterruptedException {
+  public void testSameTaskDifferentTimeRange() {
     JobSchedule schedule = JobSchedule.newSchedule("2011-10-17T15:16")
       .task(Task1.class).id("1-sec").timeRange(SECOND).add()
       .task(Task1.class).id("1-min").timeRange(MINUTE).depIds("1-sec").add()
@@ -118,7 +121,7 @@ public class JobSchedulerTest {
   }
 
   @Test
-  public void testTooShortTimePeriod() throws InterruptedException {
+  public void testTooShortTimePeriod() {
     try {
       JobSchedule.newSchedule("2006-01-17T15:16:01")
         .task(Task1.class).id("1-min").timeRange(MINUTE).add()
@@ -130,7 +133,7 @@ public class JobSchedulerTest {
   }
 
   @Test
-  public void testMissingDep() throws InterruptedException {
+  public void testMissingDep() {
     try {
       JobSchedule.newSchedule("2000-01-17T15:16")
         .task(Task1.class).id("1-min").timeRange(MINUTE).depIds("missing").add()
@@ -142,8 +145,8 @@ public class JobSchedulerTest {
   }
 
   @Test
-  public void testDifferentTaskTypes() throws InterruptedException {
-    ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+  public void testDifferentTaskTypes() {
+    ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
     JobSchedule.newSchedule("2011-01-17T15:16")
       .task(Task1.class).timeRange(SECOND).add()
       .task(Task2.class).deps(Task1.class).executor(executor).add()
@@ -151,13 +154,41 @@ public class JobSchedulerTest {
   }
 
   @Test
-  public void testOutputFromDependency() throws InterruptedException {
+  public void testOutputFromDependency() {
     JobSchedule.newSchedule("2013-01-17T15:16")
       .task(Task1.class).timeRange(SECOND).add()
       .task(CheckOutputTask.class).timeRange(TimeRangeType.MINUTE).deps(Task1.class).add()
       .execute().awaitFinish();
   }
 
+
+  @Test(timeout = 10_000)
+  public void testFailedTaskAbortsExecution() {
+    for (int i = 0; i < 5; i++) {
+      JobSchedule.newSchedule("1999-01-17T15:16")
+        .task(FailingTask.class).timeRange(SECOND).add()
+        .task(Task1.class).timeRange(TimeRangeType.MINUTE).deps(FailingTask.class).add()
+        .execute().awaitFinish();
+    }
+  }
+
+  public static class FailingTask extends Task {
+
+    public FailingTask(TaskContext context) {
+      super(context);
+    }
+
+    @Override
+    public void execute() {
+      sleep(500);
+      throw new RuntimeException();
+    }
+
+    @Override
+    public TaskOutput getOutput() {
+      return new FileOutput(getContext().getPath().toFile());
+    }
+  }
 
   public static class CheckOutputTask extends Task {
 

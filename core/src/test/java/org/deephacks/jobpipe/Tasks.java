@@ -40,7 +40,7 @@ public class Tasks {
     }
   }
 
-  private static void sleep(long ms) {
+  public static void sleep(long ms) {
     try {
       Thread.sleep(ms);
     } catch (InterruptedException e) {

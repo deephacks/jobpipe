@@ -137,9 +137,7 @@ public class JobSchedule {
     public void run() {
       for (Node dep : node.getDependencies()) {
         if (!dep.isFinished()) {
-          ScheduledFuture<?> handle = node.getExecutor()
-            .schedule(new ScheduleTask(node), 1, TimeUnit.SECONDS);
-          scheduleHandles.add(handle);
+          retry(1);
           return;
         }
       }
@@ -148,15 +146,37 @@ public class JobSchedule {
         try {
           node.execute();
         } catch (Throwable e) {
-          logger.warn("Task execution failed.", e);
-          logger.info("Reschedule task {} in {} seconds.", node);
-          ScheduledFuture<?> handle = node.getExecutor()
-            .schedule(new ScheduleTask(node), Config.FAILED_TASK_RETRY_SEC, TimeUnit.SECONDS);
-          scheduleHandles.add(handle);
+          logger.warn("Task execution failed. Aborting all execution.", e);
+          cancelAllExecution();
         }
       } else {
         logger.info("Skipping  {}", node);
       }
+    }
+
+    public void cancelAllExecution() {
+      try {
+        for (ScheduledFuture<?> handle : scheduleHandles) {
+          handle.cancel(true);
+        }
+      } catch (Throwable e) {
+        throw new RuntimeException("cancelExecution failed", e);
+      } finally {
+        for (Node n : schedule) {
+          try {
+            n.getExecutor().shutdownNow();
+          } catch (Throwable e) {
+            logger.warn("Error during executor shutdown. ", e);
+          }
+        }
+      }
+    }
+
+    public void retry(int sec) {
+      logger.info("Retry task {} in {} seconds.", node);
+      ScheduledFuture<?> handle = node.getExecutor()
+        .schedule(new ScheduleTask(node), sec, TimeUnit.SECONDS);
+      scheduleHandles.add(handle);
     }
 
     public void schedule() {
@@ -171,7 +191,7 @@ public class JobSchedule {
   public static class JobScheduleBuilder {
     private TimeRange timeRange;
     private Map<String, List<Node>> tasks = new HashMap<>();
-    private ScheduledExecutorService defaultScheduler;
+    private ScheduledThreadPoolExecutor defaultScheduler;
     private String taskId;
     private String[] args;
 
@@ -203,7 +223,7 @@ public class JobSchedule {
       return new TaskBuilder(cls, this);
     }
 
-    public JobScheduleBuilder executor(ScheduledExecutorService executor) {
+    public JobScheduleBuilder executor(ScheduledThreadPoolExecutor executor) {
       this.defaultScheduler = executor;
       return this;
     }
@@ -232,7 +252,7 @@ public class JobSchedule {
     private String id;
     private List<String> deps = new ArrayList<>();
     private TimeRangeType timeRangeType;
-    private ScheduledExecutorService executor;
+    private ScheduledThreadPoolExecutor executor;
     private JobScheduleBuilder jobScheduleBuilder;
 
     private TaskBuilder(Class<? extends Task> cls, JobScheduleBuilder jobScheduleBuilder) {
@@ -271,7 +291,7 @@ public class JobSchedule {
       return this;
     }
 
-    public TaskBuilder executor(ScheduledExecutorService executor) {
+    public TaskBuilder executor(ScheduledThreadPoolExecutor executor) {
       this.executor = executor;
       return this;
     }
@@ -294,9 +314,10 @@ public class JobSchedule {
           " is less than task time range for " + id + ", so it will never complete.");
       }
       for (TimeRange range : timeRangeType.ranges(jobScheduleBuilder.timeRange)) {
-        ScheduledExecutorService executor = Optional.ofNullable(this.executor)
+        ScheduledThreadPoolExecutor executor = Optional.ofNullable(this.executor)
           .orElseGet(() -> jobScheduleBuilder.defaultScheduler = Optional.ofNullable(jobScheduleBuilder.defaultScheduler)
-            .orElseGet(() -> Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors())));
+            .orElseGet(() -> new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())));
+        executor.setRemoveOnCancelPolicy(true);
         Node node = new Node(id, cls, range, executor, jobScheduleBuilder.args);
         for (String dep : deps) {
           List<Node> nodes = jobScheduleBuilder.tasks.get(dep);
