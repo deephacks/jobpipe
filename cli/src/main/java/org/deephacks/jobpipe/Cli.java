@@ -49,15 +49,23 @@ public class Cli {
     if (options.has("task")) {
       taskId = options.valueOf(optTaskId);
     }
-
-    ServiceLoader<Pipeline> pipelines = ServiceLoader.load(Pipeline.class);
+    ArrayList<Pipeline> pipelines = new ArrayList<>();
+    ServiceLoader.load(Pipeline.class).forEach(pipelines::add);
     Pattern pattern = Pattern.compile(cls);
-    for (Pipeline pipeline : pipelines) {
-      if (pattern.matcher(pipeline.getClass().getName()).find()) {
-        PipelineContext context = new PipelineContext(range, taskId, args);
-        System.out.println("Executing " + pipeline.getClass().getName() + " for "  + range);
-        pipeline.execute(context);
+    if (pipelines.isEmpty()) {
+      System.out.println("No pipelines found. " +
+        "Check that -Djobpipe.cp or lib classpath contains jar(s) with META-INF/services/org.deephacks.jobpipe.Pipeline");
+    } else {
+      for (Pipeline pipeline : pipelines) {
+        if (pattern.matcher(pipeline.getClass().getName()).find()) {
+          PipelineContext context = new PipelineContext(range, taskId, args);
+          System.out.println("Executing " + pipeline.getClass().getName() + " for " + range);
+          pipeline.execute(context);
+          return;
+        }
       }
+      System.out.println("'" + cls + "' matches no pipeline, existing pipelines:");
+      pipelines.stream().map(p -> p.getClass().getName()).forEach(System.out::println);
     }
   }
 

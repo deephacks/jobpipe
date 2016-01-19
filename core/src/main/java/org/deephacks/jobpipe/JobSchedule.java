@@ -141,16 +141,16 @@ public class JobSchedule {
           return;
         }
       }
-      if (!node.isFinished()) {
-        logger.info("Executing {}", node);
-        try {
+      try {
+        if (!node.isFinished()) {
+          logger.info("Executing {}", node);
           node.execute();
-        } catch (Throwable e) {
-          logger.warn("Task execution failed. Aborting all execution.", e);
-          cancelAllExecution();
+        } else {
+          logger.info("Skipping  {}", node);
         }
-      } else {
-        logger.info("Skipping  {}", node);
+      } catch (Throwable e) {
+        logger.warn("Task execution failed. Aborting all execution.", e);
+        cancelAllExecution();
       }
     }
 
