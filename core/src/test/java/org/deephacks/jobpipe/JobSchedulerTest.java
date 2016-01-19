@@ -5,6 +5,7 @@ import org.deephacks.jobpipe.Tasks.Task2;
 import org.junit.Test;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -173,9 +174,11 @@ public class JobSchedulerTest {
   }
 
   public static class FailingTask extends Task {
+    FileOutput output;
 
     public FailingTask(TaskContext context) {
       super(context);
+      this.output = new FileOutput();
     }
 
     @Override
@@ -186,26 +189,30 @@ public class JobSchedulerTest {
 
     @Override
     public TaskOutput getOutput() {
-      return new FileOutput(getContext().getPath().toFile());
+      return output;
     }
   }
 
   public static class CheckOutputTask extends Task {
+    FileOutput output;
 
     public CheckOutputTask(TaskContext context) {
       super(context);
+      this.output = new FileOutput();
     }
 
     @Override
     public void execute() {
-      List<File> output = getContext().getDependecyOutput().stream()
-        .map(o -> (File) o.get()).collect(Collectors.toList());
-      assertThat(output.size(), is(60));
+      List<File> files = getContext().getDependecyOutput().stream()
+        .map(o -> (File) o.get()).peek(file -> assertTrue(file.exists()))
+        .collect(Collectors.toList());
+      assertThat(files.size(), is(60));
+      output.create();
     }
 
     @Override
     public TaskOutput getOutput() {
-      return new FileOutput(getContext().getPath().toFile());
+      return output;
     }
   }
 }

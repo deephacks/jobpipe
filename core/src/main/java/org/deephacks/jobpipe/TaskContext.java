@@ -1,49 +1,33 @@
 package org.deephacks.jobpipe;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 public class TaskContext {
   final String id;
   final Node node;
-  final Path path;
   final String[] args;
 
   TaskContext(Node node) {
     this.id = node.getId();
     this.node = node;
-    this.path = Paths.get(Config.BASE_PATH + "/tasks/" + id + "/" + node.getRange().format());
     this.args = node.getArgs();
   }
 
   public boolean isFinished() {
-    return path.toFile().exists();
+    return node.getTask().getOutput().exist();
+  }
+
+  public TimeRange getTimeRange() {
+    return node.getRange();
   }
 
   public String getId() {
     return id;
   }
 
-  public Path getPath() {
-    return path;
-  }
-
   public String[] getArgs() {
     return args;
-  }
-
-  public Path createPath() {
-    try {
-      Files.createDirectories(path);
-      return path;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   public List<TaskOutput> getDependecyOutput() {
@@ -54,7 +38,7 @@ public class TaskContext {
 
   @Override
   public String toString() {
-    return path.toString();
+    return node.toString();
   }
 
   @Override

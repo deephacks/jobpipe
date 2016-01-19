@@ -173,7 +173,7 @@ public class JobSchedule {
     }
 
     public void retry(int sec) {
-      logger.info("Retry task {} in {} seconds.", node);
+      logger.info("Retry task {} in {} seconds.", node, sec);
       ScheduledFuture<?> handle = node.getExecutor()
         .schedule(new ScheduleTask(node), sec, TimeUnit.SECONDS);
       scheduleHandles.add(handle);
