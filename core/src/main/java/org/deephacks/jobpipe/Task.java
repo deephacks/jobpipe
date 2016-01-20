@@ -32,9 +32,6 @@ public abstract class Task {
 
   @Override
   public String toString() {
-    return "Task{" +
-      "id=" + context.id +
-      ", range=" + context.node.getRange() +
-      '}';
+    return "[" + context.id + "," + context.node.getRange() + "]";
   }
 }

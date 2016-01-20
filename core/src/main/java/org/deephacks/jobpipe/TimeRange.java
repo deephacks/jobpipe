@@ -77,10 +77,7 @@ public class TimeRange {
 
   @Override
   public String toString() {
-    return "TimeRange{" +
-      "range=" + type.format().format(from.toDate()) + "/" + type.format().format(to().toDate()) +
-      ", type=" + type +
-      '}';
+    return type + ","  + type.format().format(from.toDate());
   }
 
   @Override

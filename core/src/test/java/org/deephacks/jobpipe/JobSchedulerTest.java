@@ -5,19 +5,16 @@ import org.deephacks.jobpipe.Tasks.Task2;
 import org.junit.Test;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.deephacks.jobpipe.Tasks.sleep;
-import static org.deephacks.jobpipe.TimeRangeType.*;
+import static org.deephacks.jobpipe.TimeRangeType.MINUTE;
+import static org.deephacks.jobpipe.TimeRangeType.SECOND;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -82,7 +79,7 @@ public class JobSchedulerTest {
   public void testExecutePipelineContext() {
     TimeRange range = new TimeRange("2012-10-10T10:00");
     String taskId = "0";
-    String[] args = new String[] {"hello"};
+    String[] args = new String[]{"hello"};
     PipelineContext context = new PipelineContext(range, taskId, args);
     JobSchedule schedule = JobSchedule.newSchedule(context)
       .task(Task1.class).id("1").timeRange(MINUTE).add()
@@ -123,14 +120,10 @@ public class JobSchedulerTest {
 
   @Test
   public void testTooShortTimePeriod() {
-    try {
-      JobSchedule.newSchedule("2006-01-17T15:16:01")
-        .task(Task1.class).id("1-min").timeRange(MINUTE).add()
-        .execute();
-      fail("should fail");
-    } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), containsString("less than task time range"));
-    }
+    JobSchedule schedule = JobSchedule.newSchedule("2006-01-17T15:16:01")
+      .task(Task1.class).id("1-min").timeRange(MINUTE).add()
+      .execute();
+    assertThat(schedule.getScheduledTasks().size(), is(0));
   }
 
   @Test

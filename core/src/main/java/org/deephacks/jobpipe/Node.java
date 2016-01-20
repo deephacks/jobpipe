@@ -118,9 +118,6 @@ class Node {
 
   @Override
   public String toString() {
-    return "Task{" +
-      "id='" + id + '\'' +
-      ", range=" + range.toString() +
-      '}';
+    return "[" + id + "," + range.toString() + "]";
   }
 }

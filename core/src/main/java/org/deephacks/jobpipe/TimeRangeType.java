@@ -157,12 +157,17 @@ public enum TimeRangeType {
   }
 
   public List<TimeRange> ranges(TimeRange range) {
-      DateTime from = range.from();
-      ArrayList<TimeRange> list = new ArrayList<>();
-      while (from.isBefore(range.to())) {
-        list.add(new TimeRange(from, this));
-        from = this.next(from);
-      }
-      return list;
+    if (ordinal() > range.getType().ordinal()) {
+      // Target job time range is less than task time range
+      return new ArrayList<>();
+    }
+    DateTime from = range.from();
+    ArrayList<TimeRange> list = new ArrayList<>();
+
+    while (from.isBefore(range.to())) {
+      list.add(new TimeRange(from, this));
+      from = this.next(from);
+    }
+    return list;
   }
 }

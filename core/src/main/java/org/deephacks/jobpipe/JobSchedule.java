@@ -309,10 +309,6 @@ public class JobSchedule {
       if (id == null) {
         id = cls.getSimpleName();
       }
-      if (jobScheduleBuilder.timeRange.getType().ordinal() < timeRangeType.ordinal()) {
-        throw new IllegalArgumentException("Target job time range " + jobScheduleBuilder.timeRange +
-          " is less than task time range for " + id + ", so it will never complete.");
-      }
       for (TimeRange range : timeRangeType.ranges(jobScheduleBuilder.timeRange)) {
         ScheduledThreadPoolExecutor executor = Optional.ofNullable(this.executor)
           .orElseGet(() -> jobScheduleBuilder.defaultScheduler = Optional.ofNullable(jobScheduleBuilder.defaultScheduler)
