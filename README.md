@@ -31,7 +31,7 @@ Abstract graph of task execution expressed in code.
       .execute();
 ```
 
-The execution of this schedule may yield this order of task execution at exactly 2015-01-14T10:00. If the date have passed each task will be scheduled immediately. Task execution is stalled until dependent tasks have valid output.
+The execution of this schedule may yield the following order of execution at exactly 2015-01-14T10:00. Tasks are scheduled immediately if the scheduled date have passed. Task execution is stalled until dependent tasks have valid output.
 
 ```java
 12, 11, 10, 9, 4, 6, 5, 1, 7, 3, 0, 8, 2
