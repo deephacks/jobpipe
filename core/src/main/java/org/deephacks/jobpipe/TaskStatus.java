@@ -37,13 +37,16 @@ public class TaskStatus {
     return lastUpdate;
   }
 
-  void setCode(TaskStatusCode code) {
+  boolean setCode(TaskStatusCode code) {
     if (this.code != code) {
       this.code = code;
     }
     setLastUpdate();
-    if (observer != null) {
-      observer.notify(this);
+    try {
+      return observer != null ? observer.notify(this) : true;
+    } catch (Throwable e) {
+      e.printStackTrace(System.err);
+      return false;
     }
   }
 
@@ -69,8 +72,8 @@ public class TaskStatus {
     setCode(TaskStatusCode.RUNNING);
   }
 
-  void scheduled() {
-    setCode(TaskStatusCode.SCHEDULED);
+  boolean scheduled() {
+    return setCode(TaskStatusCode.SCHEDULED);
   }
 
   void setLastUpdate() {

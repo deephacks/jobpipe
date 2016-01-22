@@ -1,5 +1,21 @@
 package org.deephacks.jobpipe;
 
+/**
+ * Can be used for logging, storage history of task transitions,
+ * rejection tasks and similar.
+ */
 public interface JobObserver {
-  void notify(TaskStatus status);
+  /**
+   * Called before a task transition and execute a new status.
+   * Some TaskStatusCode transitions can be rejected, in particular
+   * {@link org.deephacks.jobpipe.TaskStatus.TaskStatusCode#SCHEDULED},
+   * which would reject scheduling of the task.
+   *
+   * Do not throw runtime exceptions, it will reject the task transition and barf
+   * the stacktrace on System.err.
+   *
+   * @param status next status.
+   * @return false to reject the status change.
+   */
+  boolean notify(TaskStatus status);
 }

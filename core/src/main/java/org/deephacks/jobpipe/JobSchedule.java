@@ -153,18 +153,20 @@ public class JobSchedule {
     }
 
     public void retry(int sec) {
-      ScheduledFuture<?> handle = node.getExecutor()
-        .schedule(new ScheduleTask(node), sec, TimeUnit.SECONDS);
-      node.getStatus().scheduled();
-      scheduleHandles.add(handle);
+      if (node.getStatus().scheduled()) {
+        ScheduledFuture<?> handle = node.getExecutor()
+          .schedule(new ScheduleTask(node), sec, TimeUnit.SECONDS);
+        scheduleHandles.add(handle);
+      }
     }
 
     public void schedule() {
-      long timeout = node.getTimeout().getMillis() - System.currentTimeMillis();
-      ScheduledFuture<?> handle = node.getExecutor()
-        .schedule(this, timeout, TimeUnit.MILLISECONDS);
-      node.getStatus().scheduled();
-      scheduleHandles.add(handle);
+      if (node.getStatus().scheduled()) {
+        long timeout = node.getTimeout().getMillis() - System.currentTimeMillis();
+        ScheduledFuture<?> handle = node.getExecutor()
+          .schedule(this, timeout, TimeUnit.MILLISECONDS);
+        scheduleHandles.add(handle);
+      }
     }
   }
 
