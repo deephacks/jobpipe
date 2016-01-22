@@ -5,6 +5,7 @@ import org.joda.time.DateTime;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 
 class Node {
   private final String id;
@@ -14,6 +15,7 @@ class Node {
   private final Task task;
   private final ScheduledExecutorService executor;
   private final String[] args;
+  private final AtomicReference<TaskStatus> status = new AtomicReference<>();
 
   Node(String id, Class<? extends Task> cls, TimeRange range, ScheduledExecutorService executor, String[] args) {
     this.id = id;
@@ -22,6 +24,7 @@ class Node {
     this.executor = executor;
     this.context = new TaskContext(this);
     this.task = newTask(cls, context);
+    this.status.set(new TaskStatus(context));
   }
 
   void execute() {
@@ -38,6 +41,10 @@ class Node {
 
   Task getTask() {
     return task;
+  }
+
+  public TaskStatus getStatus() {
+    return status.get();
   }
 
   public String[] getArgs() {
@@ -80,8 +87,8 @@ class Node {
     return result;
   }
 
-  boolean isFinished() {
-    return context.isFinished();
+  boolean hasOutput() {
+    return context.hasOutput();
   }
 
   Task newTask(Class<? extends Task> cls, TaskContext context) {

@@ -136,54 +136,42 @@ public class JobSchedule {
     @Override
     public void run() {
       for (Node dep : node.getDependencies()) {
-        if (!dep.isFinished()) {
+        if (dep.getStatus().hasFailed()) {
+          logger.info("{} failed dependencies {}", node, dep);
+          node.getStatus().failedDep();
+          return;
+        } else  if (!dep.hasOutput()) {
           retry(1);
           return;
         }
       }
       try {
-        if (!node.isFinished()) {
-          logger.info("Executing {}", node);
+        if (!node.hasOutput()) {
+          node.getStatus().running();
           node.execute();
+          node.getStatus().finished();
         } else {
-          logger.info("Skipping  {}", node);
+          node.getStatus().skipped();
         }
       } catch (Throwable e) {
-        logger.warn("Task execution failed. Aborting all execution.", e);
-        cancelAllExecution();
-      }
-    }
-
-    public void cancelAllExecution() {
-      try {
-        for (ScheduledFuture<?> handle : scheduleHandles) {
-          handle.cancel(true);
-        }
-      } catch (Throwable e) {
-        throw new RuntimeException("cancelExecution failed", e);
-      } finally {
-        for (Node n : schedule) {
-          try {
-            n.getExecutor().shutdownNow();
-          } catch (Throwable e) {
-            logger.warn("Error during executor shutdown. ", e);
-          }
-        }
+        node.getStatus().failed(e);
+        logger.debug("Task execution failed " + node, e);
       }
     }
 
     public void retry(int sec) {
-      logger.info("Retry task {} in {} seconds.", node, sec);
+      logger.info("{} retry in {} seconds.", node, sec);
       ScheduledFuture<?> handle = node.getExecutor()
         .schedule(new ScheduleTask(node), sec, TimeUnit.SECONDS);
+      node.getStatus().scheduled();
       scheduleHandles.add(handle);
     }
 
     public void schedule() {
-      logger.info("Schedule task {}", node.getTask());
       long timeout = node.getTimeout().getMillis() - System.currentTimeMillis();
       ScheduledFuture<?> handle = node.getExecutor()
         .schedule(this, timeout, TimeUnit.MILLISECONDS);
+      node.getStatus().scheduled();
       scheduleHandles.add(handle);
     }
   }

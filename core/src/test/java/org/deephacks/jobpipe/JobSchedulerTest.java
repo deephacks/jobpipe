@@ -1,5 +1,6 @@
 package org.deephacks.jobpipe;
 
+import org.deephacks.jobpipe.TaskStatus.TaskStatusCode;
 import org.deephacks.jobpipe.Tasks.Task1;
 import org.deephacks.jobpipe.Tasks.Task2;
 import org.junit.Test;
@@ -156,13 +157,30 @@ public class JobSchedulerTest {
   }
 
 
-  @Test(timeout = 10_000)
+  @Test(timeout = 15_000)
   public void testFailedTaskAbortsExecution() {
-    for (int i = 0; i < 5; i++) {
-      JobSchedule.newSchedule("1999-01-17T15:16")
-        .task(FailingTask.class).timeRange(SECOND).add()
-        .task(Task1.class).timeRange(TimeRangeType.MINUTE).deps(FailingTask.class).add()
-        .execute().awaitFinish();
+    for (int i = 0; i < 3; i++) {
+      JobSchedule schedule = JobSchedule.newSchedule("1999-01-17")
+        .task(FailingTask.class).timeRange(TimeRangeType.HOUR).add()
+        .task(Task1.class).timeRange(TimeRangeType.DAY).deps(FailingTask.class).add()
+        .execute();
+      schedule.awaitFinish();
+      List<Task> tasks = schedule.getScheduledTasks();
+      assertThat(tasks.size(), is(24 + 1));
+
+      List<Task> errors = tasks.stream()
+        .filter(t -> t.getContext().getStatus().code() == TaskStatusCode.ERROR_EXECUTE)
+        .collect(Collectors.toList());
+      assertThat(errors.size(), is(24));
+      for (Task t : errors) {
+        assertThat(t.getContext().getId(), is("FailingTask"));
+      }
+
+      List<Task> deps = tasks.stream()
+        .filter(t -> t.getContext().getStatus().code() == TaskStatusCode.ERROR_DEPENDENCY)
+        .collect(Collectors.toList());
+      assertThat(deps.size(), is(1));
+      assertThat(deps.get(0).getContext().getId(), is("Task1"));
     }
   }
 
@@ -177,7 +195,7 @@ public class JobSchedulerTest {
     @Override
     public void execute() {
       sleep(500);
-      throw new RuntimeException();
+      throw new RuntimeException("message");
     }
 
     @Override

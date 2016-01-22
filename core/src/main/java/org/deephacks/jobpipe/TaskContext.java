@@ -14,7 +14,7 @@ public class TaskContext {
     this.args = node.getArgs();
   }
 
-  public boolean isFinished() {
+  public boolean hasOutput() {
     return node.getTask().getOutput().exist();
   }
 
@@ -24,6 +24,10 @@ public class TaskContext {
 
   public String getId() {
     return id;
+  }
+
+  public TaskStatus getStatus() {
+    return node.getStatus();
   }
 
   public String[] getArgs() {
