@@ -32,9 +32,11 @@ public class TaskStatus {
   }
 
   void setCode(TaskStatusCode code) {
-    this.code = code;
+    if (this.code != code) {
+      this.code = code;
+      logger.info("{} -> {}", context.node, code);
+    }
     setLastUpdate();
-    logger.info("{} -> {}", context.node, code);
   }
 
   void failed(Throwable e) {

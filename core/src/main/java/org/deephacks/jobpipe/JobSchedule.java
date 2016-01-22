@@ -160,7 +160,6 @@ public class JobSchedule {
     }
 
     public void retry(int sec) {
-      logger.info("{} retry in {} seconds.", node, sec);
       ScheduledFuture<?> handle = node.getExecutor()
         .schedule(new ScheduleTask(node), sec, TimeUnit.SECONDS);
       node.getStatus().scheduled();
