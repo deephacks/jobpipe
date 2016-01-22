@@ -1,4 +1,4 @@
 # jobpipe
-Scheduler for pipelines of jobs for Java inspired by Spotify [Luigi](https://github.com/spotify/luigi).
+Java scheduler for pipelines of jobs inspired by Spotify [Luigi](https://github.com/spotify/luigi).
 
 
