@@ -1,19 +1,17 @@
 package org.deephacks.jobpipe;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Optional;
 
 public class TaskStatus {
-  private static final Logger logger = LoggerFactory.getLogger(TaskStatus.class);
   private TaskContext context;
   private Object failReason;
   private TaskStatusCode code;
   private long lastUpdate = 0;
+  private final JobObserver observer;
 
-  public TaskStatus(TaskContext context) {
+  public TaskStatus(TaskContext context, JobObserver observer) {
     this.context = context;
+    this.observer = observer;
     setCode(TaskStatusCode.NEW);
     setLastUpdate();
   }
@@ -31,6 +29,10 @@ public class TaskStatus {
       TaskStatusCode.ERROR_EXECUTE == code;
   }
 
+  public TaskContext getContext() {
+    return context;
+  }
+
   public long getLastUpdate() {
     return lastUpdate;
   }
@@ -38,9 +40,11 @@ public class TaskStatus {
   void setCode(TaskStatusCode code) {
     if (this.code != code) {
       this.code = code;
-      logger.info("{} -> {}", context.node, code);
     }
     setLastUpdate();
+    if (observer != null) {
+      observer.notify(this);
+    }
   }
 
   void failed(Throwable e) {

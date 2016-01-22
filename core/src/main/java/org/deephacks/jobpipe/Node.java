@@ -17,14 +17,14 @@ class Node {
   private final String[] args;
   private final AtomicReference<TaskStatus> status = new AtomicReference<>();
 
-  Node(String id, Class<? extends Task> cls, TimeRange range, ScheduledExecutorService executor, String[] args) {
+  Node(String id, Class<? extends Task> cls, TimeRange range, ScheduledExecutorService executor, String[] args, JobObserver observer) {
     this.id = id;
     this.range = range;
     this.args = args;
     this.executor = executor;
     this.context = new TaskContext(this);
     this.task = newTask(cls, context);
-    this.status.set(new TaskStatus(context));
+    this.status.set(new TaskStatus(context, observer));
   }
 
   void execute() {

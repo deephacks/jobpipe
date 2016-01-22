@@ -21,13 +21,14 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 public class JobSchedulerTest {
-
+  private JobObserver observer = new JobObserverLog();
   /**
    * See dag.png in this directory
    */
   @Test
   public void testDirectedAsyclicGraph() {
     JobSchedule schedule = JobSchedule.newSchedule("2015-01-14T10:00")
+      .observer(observer)
       .task(Task1.class).id("1").timeRange(MINUTE).add()
       .task(Task1.class).id("4").timeRange(MINUTE).add()
       .task(Task1.class).id("10").timeRange(MINUTE).add()
@@ -53,6 +54,7 @@ public class JobSchedulerTest {
   @Test
   public void testExecuteTaskId() {
     JobSchedule schedule = JobSchedule.newSchedule("2015-12-01T10:00")
+      .observer(observer)
       .task(Task1.class).id("1").timeRange(MINUTE).add()
       .task(Task1.class).id("4").timeRange(MINUTE).add()
       .task(Task1.class).id("10").timeRange(MINUTE).add()
@@ -83,6 +85,7 @@ public class JobSchedulerTest {
     String[] args = new String[]{"hello"};
     PipelineContext context = new PipelineContext(range, taskId, args);
     JobSchedule schedule = JobSchedule.newSchedule(context)
+      .observer(observer)
       .task(Task1.class).id("1").timeRange(MINUTE).add()
       .task(Task1.class).id("4").timeRange(MINUTE).add()
       .task(Task1.class).id("10").timeRange(MINUTE).add()
@@ -143,6 +146,7 @@ public class JobSchedulerTest {
   public void testDifferentTaskTypes() {
     ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
     JobSchedule.newSchedule("2011-01-17T15:16")
+      .observer(observer)
       .task(Task1.class).timeRange(SECOND).add()
       .task(Task2.class).deps(Task1.class).executor(executor).add()
       .execute().awaitFinish();
@@ -161,6 +165,7 @@ public class JobSchedulerTest {
   public void testFailedTaskAbortsExecution() {
     for (int i = 0; i < 3; i++) {
       JobSchedule schedule = JobSchedule.newSchedule("1999-01-17")
+        .observer(observer)
         .task(FailingTask.class).timeRange(TimeRangeType.HOUR).add()
         .task(Task1.class).timeRange(TimeRangeType.DAY).deps(FailingTask.class).add()
         .execute();

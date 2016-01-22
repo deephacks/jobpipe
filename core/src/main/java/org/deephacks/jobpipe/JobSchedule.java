@@ -1,14 +1,10 @@
 package org.deephacks.jobpipe;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class JobSchedule {
-  private static final Logger logger = LoggerFactory.getLogger(JobSchedule.class);
   private final TimeRange timeRange;
   private final Map<String, List<Node>> tasks;
   private final ConcurrentLinkedDeque<ScheduledFuture<?>> scheduleHandles = new ConcurrentLinkedDeque<>();
@@ -93,7 +89,6 @@ public class JobSchedule {
   private List<Node> execute(String taskId) {
     List<Node> jobSchedule = getJobSchedule(taskId);
     if (jobSchedule.isEmpty()) {
-      logger.info("Nothing to execute.");
       return new ArrayList<>();
     }
     schedule.addAll(jobSchedule);
@@ -154,7 +149,6 @@ public class JobSchedule {
         }
       } catch (Throwable e) {
         node.getStatus().failed(e);
-        logger.debug("Task execution failed " + node, e);
       }
     }
 
@@ -178,6 +172,7 @@ public class JobSchedule {
     private TimeRange timeRange;
     private Map<String, List<Node>> tasks = new HashMap<>();
     private ScheduledThreadPoolExecutor defaultScheduler;
+    private JobObserver observer;
     private String taskId;
     private String[] args;
 
@@ -197,6 +192,11 @@ public class JobSchedule {
 
     public JobScheduleBuilder targetTask(Class<? extends Task> cls) {
       this.taskId = cls.getSimpleName();
+      return this;
+    }
+
+    public JobScheduleBuilder observer(JobObserver observer) {
+      this.observer = observer;
       return this;
     }
 
@@ -300,7 +300,7 @@ public class JobSchedule {
           .orElseGet(() -> jobScheduleBuilder.defaultScheduler = Optional.ofNullable(jobScheduleBuilder.defaultScheduler)
             .orElseGet(() -> new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())));
         executor.setRemoveOnCancelPolicy(true);
-        Node node = new Node(id, cls, range, executor, jobScheduleBuilder.args);
+        Node node = new Node(id, cls, range, executor, jobScheduleBuilder.args, jobScheduleBuilder.observer);
         for (String dep : deps) {
           List<Node> nodes = jobScheduleBuilder.tasks.get(dep);
           if (nodes == null) {
