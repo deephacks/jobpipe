@@ -3,6 +3,7 @@ Java scheduler for pipelines of long-running batch processes, inspired by Spotif
 
 The purpose of jobpipe is to execute certain tasks at regular time ranges and allow expressing dependencies
 between tasks as sequence of continuous executions in time. Every task produce output which is provided as input to dependent tasks. Any task is stalled until dependent task output is produced (if any). Idempotent task output enable resumability of pipelines that crash halfway. Task that fail (without a previously valid output) will transitively fail its dependent tasks.
+Tasks may execute in parallel if their inputs are satisfied.
 
 The execution model of jobpipe is similar to that of a compiler, with the added dimension of time ranges. 
 
@@ -30,7 +31,7 @@ Abstract graph of task execution expressed in code.
       .execute();
 ```
 
-The execution of this schedule may yield the order of task execution.
+The execution of this schedule may yield this order of task execution at exactly 2015-01-14T10:00. Each task will wait until its dependent is finished.
 
 ```java
 12, 11, 10, 9, 4, 6, 5, 1, 7, 3, 0, 8, 2
