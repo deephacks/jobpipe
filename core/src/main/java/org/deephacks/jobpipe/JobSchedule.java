@@ -137,8 +137,7 @@ public class JobSchedule {
     public void run() {
       for (Node dep : node.getDependencies()) {
         if (dep.getStatus().hasFailed()) {
-          logger.info("{} failed dependencies {}", node, dep);
-          node.getStatus().failedDep();
+          node.getStatus().failedDep(dep.getTask().getContext());
           return;
         } else  if (!dep.hasOutput()) {
           retry(1);

@@ -8,7 +8,7 @@ import java.util.Optional;
 public class TaskStatus {
   private static final Logger logger = LoggerFactory.getLogger(TaskStatus.class);
   private TaskContext context;
-  private Throwable ex;
+  private Object failReason;
   private TaskStatusCode code;
   private long lastUpdate = 0;
 
@@ -18,8 +18,8 @@ public class TaskStatus {
     setLastUpdate();
   }
 
-  public Optional<Throwable> getException() {
-    return Optional.ofNullable(ex);
+  public Optional<Object> getFailReason() {
+    return Optional.ofNullable(failReason);
   }
 
   public TaskStatusCode code() {
@@ -31,6 +31,10 @@ public class TaskStatus {
       TaskStatusCode.ERROR_EXECUTE == code;
   }
 
+  public long getLastUpdate() {
+    return lastUpdate;
+  }
+
   void setCode(TaskStatusCode code) {
     if (this.code != code) {
       this.code = code;
@@ -40,11 +44,12 @@ public class TaskStatus {
   }
 
   void failed(Throwable e) {
-    this.ex = e;
+    this.failReason = e;
     setCode(TaskStatusCode.ERROR_EXECUTE);
   }
 
-  void failedDep() {
+  void failedDep(TaskContext failedDep) {
+    this.failReason = failedDep;
     setCode(TaskStatusCode.ERROR_DEPENDENCY);
   }
 
