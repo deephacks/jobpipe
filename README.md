@@ -8,7 +8,7 @@ The execution model of jobpipe is similar to that of a compiler, with the added 
 
 ### Example
 
-Here's an abstract example of expressing a graph of task execution in code.
+Abstract graph of task execution expressed in code.
 
 ![tools4j-cli](https://raw.github.com/deephacks/jobpipe/master/core/src/test/java/org/deephacks/jobpipe/dag.png)
 
