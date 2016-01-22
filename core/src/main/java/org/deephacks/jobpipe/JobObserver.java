@@ -6,7 +6,7 @@ package org.deephacks.jobpipe;
  */
 public interface JobObserver {
   /**
-   * Called before a task transition and execute a new status.
+   * Called before a task transition followed by the execution of the new status.
    * Some TaskStatusCode transitions can be rejected, in particular
    * {@link org.deephacks.jobpipe.TaskStatus.TaskStatusCode#SCHEDULED},
    * which would reject scheduling of the task.

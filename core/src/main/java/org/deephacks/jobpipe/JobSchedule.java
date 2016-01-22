@@ -141,9 +141,10 @@ public class JobSchedule {
       }
       try {
         if (!node.hasOutput()) {
-          node.getStatus().running();
-          node.execute();
-          node.getStatus().finished();
+          if (node.getStatus().running()) {
+            node.execute();
+            node.getStatus().finished();
+          }
         } else {
           node.getStatus().skipped();
         }

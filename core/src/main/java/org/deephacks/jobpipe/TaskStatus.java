@@ -68,8 +68,8 @@ public class TaskStatus {
     setCode(TaskStatusCode.SKIPPED);
   }
 
-  void running() {
-    setCode(TaskStatusCode.RUNNING);
+  boolean running() {
+    return setCode(TaskStatusCode.RUNNING);
   }
 
   boolean scheduled() {
