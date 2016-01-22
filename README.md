@@ -29,3 +29,9 @@ Abstract graph of task execution expressed in code.
       .task(Task1.class).id("8").timeRange(MINUTE).depIds("7").add()
       .execute();
 ```
+
+The execution of this schedule may yield the order of task execution.
+
+```java
+12, 11, 10, 9, 4, 6, 5, 1, 7, 3, 0, 8, 2
+```
