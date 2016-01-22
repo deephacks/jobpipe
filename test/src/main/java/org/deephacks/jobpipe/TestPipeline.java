@@ -18,6 +18,7 @@ public class TestPipeline implements Pipeline {
     }
 
     JobSchedule.newSchedule(context)
+      .observer(new JobObserverLog())
       .task(TestTask.class).id("1").timeRange(TimeRangeType.HOUR).add()
       .task(TestTask.class).id("2").timeRange(TimeRangeType.HOUR).depIds("1").add()
       .task(TestTask.class).id("3").timeRange(TimeRangeType.HOUR).depIds("2").add()
