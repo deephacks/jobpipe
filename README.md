@@ -51,8 +51,48 @@ This pipeline can be executed using the command line.
 java -Djobpipe.cp=my-pipeline.jar -jar jobpipe-0.0.1-cli.jar TestPipeline -range 2015-01-14T10:00
 ```
 
-The execution of this schedule may yield the following order of execution at exactly 2015-01-14T10:00. Tasks are scheduled immediately if the scheduled date have passed. Task execution is stalled until dependent tasks have valid output. Task 1, 4, 10, 12 may start in parallel.
+The execution of this schedule may yield the following order of execution at exactly 2016-01-14T10:00. Tasks are scheduled immediately if the scheduled date have passed. Task execution is stalled until dependent tasks have valid output. Task 1, 4, 10, 12 may start in parallel.
 
 ```java
 12, 11, 10, 9, 4, 6, 5, 1, 7, 3, 0, 8, 2
 ```
+
+Tasks can have different time ranges.
+
+```java
+    JobSchedule schedule = JobSchedule.newSchedule(context)
+      .task(Task1.class).timeRange(HOUR).add()
+      .task(Task2.class).timeRange(DAY).depIds(Task1.class).add()
+      .execute();
+```
+
+Executing this schedule for 2016-01-10 will yield the following task executions. Since the date have passed, the 'hourly' Task1 tasks may run in parallel and 'daily' Task2 afterwards.
+
+```bash
+[Task1,HOUR,2016-01-10T23]
+[Task1,HOUR,2016-01-10T22]
+[Task1,HOUR,2016-01-10T21]
+[Task1,HOUR,2016-01-10T20]
+[Task1,HOUR,2016-01-10T19]
+[Task1,HOUR,2016-01-10T18]
+[Task1,HOUR,2016-01-10T17]
+[Task1,HOUR,2016-01-10T16]
+[Task1,HOUR,2016-01-10T15]
+[Task1,HOUR,2016-01-10T14]
+[Task1,HOUR,2016-01-10T13]
+[Task1,HOUR,2016-01-10T12]
+[Task1,HOUR,2016-01-10T11]
+[Task1,HOUR,2016-01-10T10]
+[Task1,HOUR,2016-01-10T09]
+[Task1,HOUR,2016-01-10T08]
+[Task1,HOUR,2016-01-10T07]
+[Task1,HOUR,2016-01-10T06]
+[Task1,HOUR,2016-01-10T05]
+[Task1,HOUR,2016-01-10T04]
+[Task1,HOUR,2016-01-10T03]
+[Task1,HOUR,2016-01-10T02]
+[Task1,HOUR,2016-01-10T01]
+[Task1,HOUR,2016-01-10T00]
+[Task2,DAY,2016-01-10]
+```
+
