@@ -2,7 +2,7 @@
 Java scheduler for pipelines of long-running batch processes, inspired by Spotify [Luigi](https://github.com/spotify/luigi).
 
 The purpose of jobpipe is to execute certain tasks at regular time ranges and allow expressing dependencies
-between tasks as a sequence of continuous executions in time. A schedule is a time dependent directed acyclic graph of task executions. Every task produce output which is provided as input to dependent tasks. Any task is stalled until its dependent task(s) output are produced (if any). Idempotent task output enable resumability of pipelines that crash halfway. Task that fail (without a previously valid output) will transitively fail its dependent tasks.
+between tasks as a sequence of continuous executions in time. A schedule is a time dependent directed acyclic graph of task executions. Every task produce output which is provided as input to dependent tasks. Any task is stalled until its dependent task(s) output are produced (if any). Idempotent task output enable resumability of pipelines that crash halfway. A task that fail (without a previously valid output) will transitively fail its dependent tasks.
 Tasks may execute in parallel if their inputs are satisfied.
 
 The execution model of jobpipe is similar to that of a compiler, with the added dimension of time ranges. 
