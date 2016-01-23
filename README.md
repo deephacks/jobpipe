@@ -75,6 +75,8 @@ Executing this schedule for 2016-01-10 will yield the following task executions.
 [Task2,2016-01-10]
 ```
 
+Time ranges can be sepecified minutely (2016-01-10T10:10), hourly (2016-01-10T22), daily (2016-01-10), weekly (2016-w01) or monthly (2016-01).
+
 #### Example 3 - Arguments
 
 Tasks accepts arguments that can be parsed with a library like [joptsimple](https://pholser.github.io/jopt-simple/).
