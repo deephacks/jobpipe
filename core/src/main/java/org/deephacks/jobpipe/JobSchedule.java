@@ -19,10 +19,16 @@ public class JobSchedule {
     return new JobScheduleBuilder(context);
   }
 
+  /**
+   * @param timeFormat the time range that this schedule should execute.
+   */
   public static JobScheduleBuilder newSchedule(String timeFormat) {
     return new JobScheduleBuilder(timeFormat);
   }
 
+  /**
+   * @param range the time range that this schedule should execute.
+   */
   public static JobScheduleBuilder newSchedule(TimeRange range) {
     return new JobScheduleBuilder(range);
   }
@@ -98,6 +104,9 @@ public class JobSchedule {
     return jobSchedule;
   }
 
+  /**
+   * @return all tasks are finished executing.
+   */
   public boolean isFinished() {
     for (ScheduledFuture<?> handle : scheduleHandles) {
       if (!handle.isDone()) {
@@ -107,6 +116,9 @@ public class JobSchedule {
     return true;
   }
 
+  /**
+   * Waits until all tasks are finished executing.
+   */
   public void awaitFinish() {
     while (!isFinished()) {
       try {
@@ -117,6 +129,9 @@ public class JobSchedule {
     }
   }
 
+  /**
+   * @return all tasks that have been scheduled, including finished tasks.
+   */
   public List<Task> getScheduledTasks() {
     return schedule.stream().map(node -> node.getTask()).collect(Collectors.toList());
   }
@@ -124,7 +139,7 @@ public class JobSchedule {
   private class ScheduleTask implements Runnable {
     Node node;
 
-    public ScheduleTask(Node node) {
+    ScheduleTask(Node node) {
       this.node = node;
     }
 
@@ -153,7 +168,7 @@ public class JobSchedule {
       }
     }
 
-    public void retry(int sec) {
+    void retry(int sec) {
       if (node.getStatus().scheduled()) {
         ScheduledFuture<?> handle = node.getExecutor()
           .schedule(new ScheduleTask(node), sec, TimeUnit.SECONDS);
@@ -161,7 +176,7 @@ public class JobSchedule {
       }
     }
 
-    public void schedule() {
+    void schedule() {
       if (node.getStatus().scheduled()) {
         long timeout = node.getTimeout().getMillis() - System.currentTimeMillis();
         ScheduledFuture<?> handle = node.getExecutor()
@@ -193,25 +208,41 @@ public class JobSchedule {
       this.taskId = context.taskId;
     }
 
+
+    /**
+     * @param cls create a new task
+     */
+    public TaskBuilder task(Class<? extends Task> cls) {
+      return new TaskBuilder(cls, this);
+    }
+
+    /**
+     * @param cls start executing at this task, including dependent tasks.
+     */
     public JobScheduleBuilder targetTask(Class<? extends Task> cls) {
       this.taskId = cls.getSimpleName();
       return this;
     }
 
-    public JobScheduleBuilder observer(JobObserver observer) {
-      this.observer = observer;
-      return this;
-    }
-
+    /**
+     * @param taskId start execution at this task, including dependent tasks.
+     */
     public JobScheduleBuilder targetTask(String taskId) {
       this.taskId = taskId;
       return this;
     }
 
-    public TaskBuilder task(Class<? extends Task> cls) {
-      return new TaskBuilder(cls, this);
+    /**
+     * @param observer will get notified when tasks transitions into a new state.
+     */
+    public JobScheduleBuilder observer(JobObserver observer) {
+      this.observer = observer;
+      return this;
     }
 
+    /**
+     * @param executor the default executor to use for scheduling of tasks.
+     */
     public JobScheduleBuilder executor(ScheduledThreadPoolExecutor executor) {
       this.defaultScheduler = executor;
       return this;
@@ -254,16 +285,25 @@ public class JobSchedule {
       return this;
     }
 
+    /**
+     * @param ids dependent tasks
+     */
     public TaskBuilder depIds(String... ids) {
       depIds(Arrays.asList(ids));
       return this;
     }
 
+    /**
+     * @param ids dependent tasks
+     */
     public TaskBuilder depIds(Collection<String> ids) {
       this.deps.addAll(ids);
       return this;
     }
 
+    /**
+     * @param tasks dependent tasks
+     */
     public TaskBuilder deps(Collection<Class<? extends Task>> tasks) {
       List<String> ids = tasks.stream()
         .map(cls -> cls.getSimpleName())
@@ -271,20 +311,32 @@ public class JobSchedule {
       return depIds(ids);
     }
 
+    /**
+     * @param tasks dependent tasks
+     */
     public TaskBuilder deps(Class<? extends Task>... tasks) {
       return deps(Arrays.asList(tasks));
     }
 
+    /**
+     * @param type the time range that the task operates on.
+     */
     public TaskBuilder timeRange(TimeRangeType type) {
       this.timeRangeType = type;
       return this;
     }
 
+    /**
+     * @param executor override the default executor for this task.
+     */
     public TaskBuilder executor(ScheduledThreadPoolExecutor executor) {
       this.executor = executor;
       return this;
     }
 
+    /**
+     * Adds this task to the schedule.
+     */
     public JobScheduleBuilder add() {
       TaskSpec taskSpec = cls.getAnnotation(TaskSpec.class);
       if (taskSpec != null) {
