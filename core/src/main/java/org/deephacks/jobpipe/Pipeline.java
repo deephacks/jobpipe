@@ -1,7 +1,8 @@
 package org.deephacks.jobpipe;
 
 /**
- * A pipeline schedule generated at runtime.
+ * A pipeline schedule generated at runtime. A pipeline must provide a {@link java.util.ServiceLoader}
+ * META-INF/services/org.deephacks.jobpipe.Pipeline file in its jar.
  */
 public interface Pipeline {
 
