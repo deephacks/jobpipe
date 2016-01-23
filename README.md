@@ -48,7 +48,7 @@ public class TestPipeline implements Pipeline {
 This pipeline can be executed using the command line.
 
 ```bash
-java -Djobpipe.cp=my-pipeline.jar -jar jobpipe-0.0.1-cli.jar TestPipeline -range 2015-01-14T10:00
+java -Djobpipe.cp=my-pipeline.jar -jar jobpipe-cli.jar TestPipeline -range 2015-01-14T10:00
 ```
 
 The execution of this schedule may yield the following order of execution at exactly 2016-01-14T10:00. Tasks are scheduled immediately if the scheduled date have passed. Task execution is stalled until dependent tasks have valid output. Task 1, 4, 10, 12 may start in parallel.
@@ -77,6 +77,31 @@ Executing this schedule for 2016-01-10 will yield the following task executions.
 
 #### Example 3
 
+Tasks accepts arguments that can be parsed with a library like [joptsimple](https://pholser.github.io/jopt-simple/).
+
+```bash
+java -Djobpipe.cp=my-pipeline.jar -jar jobpipe-cli.jar TestPipeline -range 2016-w01 -param1 value1
+```
+
+```java
+public class ArgTask extends Task {
+
+  @Override
+  public void execute() {
+    OptionParser parser = new OptionParser();
+    parser.allowsUnrecognizedOptions();
+    OptionSpec<String> opt = parser.accepts("param1")
+      .withRequiredArg().ofType(String.class).describedAs("param1");
+    OptionSet options = parser.parse(getContext().getArgs());
+    if (options.has("param1")) {
+      Object param1 = options.valueOf("param1");
+    }
+  }
+}
+```
+
+#### Example 4
+
 Task execution parallelism can be controlled globally or individually using ScheduledThreadPoolExecutor. 
 
 ```java
@@ -90,7 +115,7 @@ Task execution parallelism can be controlled globally or individually using Sche
       .execute().awaitFinish();
 ```
 
-#### Example 4
+#### Example 5
 
 Jobpipe is not logging opinionated, but this can be implemented by observing task status transitions. Observers may also
 reject task execution.
@@ -113,3 +138,4 @@ public class JobObserverLog implements JobObserver {
       .task(Task2.class).deps(Task1.class).add()
       .execute().awaitFinish();
 ```
+
