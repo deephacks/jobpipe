@@ -88,11 +88,12 @@ public class ArgTask extends Task {
 
   @Override
   public void execute() {
+    String[] args = getContext().getArgs();
     OptionParser parser = new OptionParser();
     parser.allowsUnrecognizedOptions();
     OptionSpec<String> opt = parser.accepts("param1")
       .withRequiredArg().ofType(String.class).describedAs("param1");
-    OptionSet options = parser.parse(getContext().getArgs());
+    OptionSet options = parser.parse(args);
     if (options.has("param1")) {
       Object param1 = options.valueOf("param1");
     }
