@@ -69,30 +69,7 @@ Tasks can have different time ranges.
 Executing this schedule for 2016-01-10 will yield the following task executions. Since the date have passed, the 'hourly' Task1 tasks may run in parallel and 'daily' Task2 afterwards.
 
 ```bash
-[Task1,HOUR,2016-01-10T23]
-[Task1,HOUR,2016-01-10T22]
-[Task1,HOUR,2016-01-10T21]
-[Task1,HOUR,2016-01-10T20]
-[Task1,HOUR,2016-01-10T19]
-[Task1,HOUR,2016-01-10T18]
-[Task1,HOUR,2016-01-10T17]
-[Task1,HOUR,2016-01-10T16]
-[Task1,HOUR,2016-01-10T15]
-[Task1,HOUR,2016-01-10T14]
-[Task1,HOUR,2016-01-10T13]
-[Task1,HOUR,2016-01-10T12]
-[Task1,HOUR,2016-01-10T11]
-[Task1,HOUR,2016-01-10T10]
-[Task1,HOUR,2016-01-10T09]
-[Task1,HOUR,2016-01-10T08]
-[Task1,HOUR,2016-01-10T07]
-[Task1,HOUR,2016-01-10T06]
-[Task1,HOUR,2016-01-10T05]
-[Task1,HOUR,2016-01-10T04]
-[Task1,HOUR,2016-01-10T03]
-[Task1,HOUR,2016-01-10T02]
-[Task1,HOUR,2016-01-10T01]
-[Task1,HOUR,2016-01-10T00]
-[Task2,DAY,2016-01-10]
+[Task1,2016-01-10T23], [Task1,2016-01-10T22] ... [Task1,2016-01-10T01], [Task1,2016-01-10T00]
+[Task2,2016-01-10]
 ```
 
