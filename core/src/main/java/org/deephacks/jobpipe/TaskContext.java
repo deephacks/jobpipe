@@ -18,18 +18,30 @@ public class TaskContext {
     return node.getTask().getOutput().exist();
   }
 
+  /**
+   * @return the time range that this task
+   */
   public TimeRange getTimeRange() {
     return node.getRange();
   }
 
+  /**
+   * @return task id
+   */
   public String getId() {
     return id;
   }
 
+  /**
+   * @return current status of this task
+   */
   public TaskStatus getStatus() {
     return node.getStatus();
   }
 
+  /**
+   * @return arguments given when the pipeline was started.
+   */
   public String[] getArgs() {
     return args;
   }

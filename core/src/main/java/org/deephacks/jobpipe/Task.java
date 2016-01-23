@@ -1,5 +1,9 @@
 package org.deephacks.jobpipe;
 
+/**
+ * A task should preferably be idempotent, so that running it many times
+ * gives the same outcome as running it once.
+ */
 public abstract class Task {
   private TaskContext context;
 
@@ -7,8 +11,14 @@ public abstract class Task {
     this.context = context;
   }
 
+  /**
+   * Executes when all dependent tasks have executed.
+   */
   public abstract void execute();
 
+  /**
+   * @return a persistent location of output, like a local directory or HDFS path.
+   */
   public abstract TaskOutput getOutput();
 
   public TaskContext getContext() {

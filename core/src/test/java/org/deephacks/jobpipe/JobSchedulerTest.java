@@ -43,6 +43,9 @@ public class JobSchedulerTest {
       .task(Task1.class).id("7").timeRange(MINUTE).depIds("6").add()
       .task(Task1.class).id("8").timeRange(MINUTE).depIds("7").add()
       .execute();
+    for (Task task : schedule.getScheduledTasks()) {
+      System.out.println(task.getContext().getId());
+    }
     List<String> taskIds = schedule.getScheduledTasks().stream()
       .map(task -> task.getContext().getId()).collect(Collectors.toList());
     assertThat(taskIds.size(), is(13));
