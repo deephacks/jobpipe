@@ -13,6 +13,8 @@ between tasks as a sequence of continuous executions in time. These tasks can be
 
 The execution model of jobpipe is similar to that of a compiler, with the added dimension of time ranges. 
 
+[Download](http://search.maven.org/remotecontent?filepath=org/deephacks/jobpipe/jobpipe-cli/0.0.1/jobpipe-cli-0.0.1-capsule-fat.jar) the latest jobpipe release.
+
 #### Example 1
 
 Abstract [Pipeline](https://github.com/deephacks/jobpipe/blob/master/core/src/main/java/org/deephacks/jobpipe/Pipeline.java) of [Task](https://github.com/deephacks/jobpipe/blob/master/core/src/main/java/org/deephacks/jobpipe/Task.java) execution expressed in code.
