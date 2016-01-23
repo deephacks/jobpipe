@@ -5,7 +5,7 @@
   <groupId>org.deephacks.jobpipe</groupId>
   <artifactId>jobpipe-project</artifactId>
   <name>jobpipe-project</name>
-  <version>0.0.1</version>
+  <version>0.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>Scheduler for pipelines of jobs</description>
   <url>http://jobpipe.deephacks.org</url>
@@ -31,7 +31,7 @@
     <connection>scm:git:git@github.com:deephacks/jobpipe.git</connection>
     <developerConnection>scm:git:git@github.com:deephacks/jobpipe.git</developerConnection>
     <url>scm:git:git@github.com/deephacks/jobpipe</url>
-    <tag>0.0.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <licenses>
