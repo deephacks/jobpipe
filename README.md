@@ -33,7 +33,8 @@ public class TestPipeline implements Pipeline {
       .task(Task1.class).id("2").timeRange(MINUTE).depIds("0", "3").add()
       .task(Task1.class).id("7").timeRange(MINUTE).depIds("6").add()
       .task(Task1.class).id("8").timeRange(MINUTE).depIds("7").add()
-      .execute();
+      .execute()
+      .awaitFinish();
   }
 }
 ```
@@ -48,4 +49,3 @@ The execution of this schedule may yield the following order of execution at exa
 ```java
 12, 11, 10, 9, 4, 6, 5, 1, 7, 3, 0, 8, 2
 ```
-
