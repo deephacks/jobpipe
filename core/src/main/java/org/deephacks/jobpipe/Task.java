@@ -3,6 +3,8 @@ package org.deephacks.jobpipe;
 /**
  * A task should preferably be idempotent, so that running it many times
  * gives the same outcome as running it once.
+ *
+ * A task may be annotated with {@link org.deephacks.jobpipe.TaskSpec} default values.
  */
 public abstract class Task {
   private TaskContext context;
@@ -13,6 +15,10 @@ public abstract class Task {
 
   /**
    * Executes when all dependent tasks have executed.
+   *
+   * Execution will be skipped if the task has previously valid output.
+   *
+   * Any exception thrown will fail this task and tasks that depends on it.
    */
   public abstract void execute();
 

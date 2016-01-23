@@ -280,6 +280,10 @@ public class JobSchedule {
       this.jobScheduleBuilder = jobScheduleBuilder;
     }
 
+    /**
+     * The id of this tasks. Defaults to the task simple classname if not explicitly
+     * set by {@link org.deephacks.jobpipe.TaskSpec}.
+     */
     public TaskBuilder id(String id) {
       this.id = id;
       return this;
@@ -319,6 +323,8 @@ public class JobSchedule {
     }
 
     /**
+     * Defaults to {@link org.deephacks.jobpipe.TaskSpec} if set.
+     *
      * @param type the time range that the task operates on.
      */
     public TaskBuilder timeRange(TimeRangeType type) {

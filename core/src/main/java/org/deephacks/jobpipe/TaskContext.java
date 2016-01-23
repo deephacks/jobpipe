@@ -46,6 +46,9 @@ public class TaskContext {
     return args;
   }
 
+  /**
+   * @return output from this task dependent tasks.
+   */
   public List<TaskOutput> getDependecyOutput() {
     return node.getDependencies().stream()
       .map(n -> n.getTaskOutput())
