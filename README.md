@@ -13,7 +13,7 @@ between tasks as a sequence of continuous executions in time. These tasks can be
 
 The execution model of jobpipe is similar to that of a compiler, with the added dimension of time ranges. 
 
-### Example
+#### Example 1
 
 Abstract [Pipeline](https://github.com/deephacks/jobpipe/blob/master/core/src/main/java/org/deephacks/jobpipe/Pipeline.java) of [Task](https://github.com/deephacks/jobpipe/blob/master/core/src/main/java/org/deephacks/jobpipe/Task.java) execution expressed in code.
 
@@ -56,6 +56,8 @@ The execution of this schedule may yield the following order of execution at exa
 ```java
 12, 11, 10, 9, 4, 6, 5, 1, 7, 3, 0, 8, 2
 ```
+
+#### Example 2
 
 Tasks can have different time ranges.
 
