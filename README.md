@@ -64,7 +64,7 @@ Tasks can have different time ranges.
 ```java
     JobSchedule schedule = JobSchedule.newSchedule(context)
       .task(Task1.class).timeRange(HOUR).add()
-      .task(Task2.class).timeRange(DAY).depIds(Task1.class).add()
+      .task(Task2.class).timeRange(DAY).deps(Task1.class).add()
       .execute();
 ```
 
@@ -73,5 +73,20 @@ Executing this schedule for 2016-01-10 will yield the following task executions.
 ```bash
 [Task1,2016-01-10T23], [Task1,2016-01-10T22] ... [Task1,2016-01-10T01], [Task1,2016-01-10T00]
 [Task2,2016-01-10]
+```
+
+#### Example 3
+
+Task execution parallelism is controlled globally or individually using ScheduledThreadPoolExecutor. 
+
+```java
+    ScheduledThreadPoolExecutor globalMultiThreaded = new ScheduledThreadPoolExecutor(10);
+    ScheduledThreadPoolExecutor singleThreaded = new ScheduledThreadPoolExecutor(1);
+    
+    JobSchedule.newSchedule(context)
+      .executor(globalMultiThreaded)
+      .task(Task1.class).add()
+      .task(Task2.class).deps(Task1.class).executor(singleThreaded).add()
+      .execute().awaitFinish();
 ```
 
