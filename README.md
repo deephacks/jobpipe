@@ -77,7 +77,7 @@ Executing this schedule for 2016-01-10 will yield the following task executions.
 
 #### Example 3
 
-Task execution parallelism is controlled globally or individually using ScheduledThreadPoolExecutor. 
+Task execution parallelism can be controlled globally or individually using ScheduledThreadPoolExecutor. 
 
 ```java
     ScheduledThreadPoolExecutor globalMultiThreaded = new ScheduledThreadPoolExecutor(10);
@@ -90,3 +90,26 @@ Task execution parallelism is controlled globally or individually using Schedule
       .execute().awaitFinish();
 ```
 
+#### Example 4
+
+Jobpipe is not logging opinionated, but this can be implemented by observing task status transitions. Observers may also
+reject task execution.
+
+```java
+public class JobObserverLog implements JobObserver {
+  private static final Logger logger = LoggerFactory.getLogger(JobObserverLog.class);
+
+  @Override
+  public boolean notify(TaskStatus status) {
+    logger.info("{} -> {}", status.getContext(), status.code());
+    // if task execution should continue.
+    return true;
+  }
+}
+    
+    JobSchedule.newSchedule(context)
+      .observer(new JobObserverLog())
+      .task(Task1.class).add()
+      .task(Task2.class).deps(Task1.class).add()
+      .execute().awaitFinish();
+```
