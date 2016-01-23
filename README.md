@@ -57,7 +57,7 @@ The execution of this schedule may yield the following order of execution at exa
 12, 11, 10, 9, 4, 6, 5, 1, 7, 3, 0, 8, 2
 ```
 
-#### Example 2
+#### Example 2 - Time ranges
 
 Tasks can have different time ranges.
 
@@ -75,7 +75,7 @@ Executing this schedule for 2016-01-10 will yield the following task executions.
 [Task2,2016-01-10]
 ```
 
-#### Example 3
+#### Example 3 - Arguments
 
 Tasks accepts arguments that can be parsed with a library like [joptsimple](https://pholser.github.io/jopt-simple/).
 
@@ -101,7 +101,7 @@ public class ArgTask extends Task {
 }
 ```
 
-#### Example 4
+#### Example 4 - Scheduling parallelism
 
 Task execution parallelism can be controlled globally or individually using ScheduledThreadPoolExecutor. 
 
@@ -116,7 +116,7 @@ Task execution parallelism can be controlled globally or individually using Sche
       .execute().awaitFinish();
 ```
 
-#### Example 5
+#### Example 5 - Observers
 
 Jobpipe is not logging opinionated, but this can be implemented by observing task status transitions. Observers may also
 reject task execution.
