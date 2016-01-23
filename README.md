@@ -14,7 +14,13 @@ Abstract [Pipeline](https://github.com/deephacks/jobpipe/blob/master/core/src/ma
 ![tools4j-cli](https://raw.github.com/deephacks/jobpipe/master/core/src/test/java/org/deephacks/jobpipe/dag.png)
 
 ```java
-    JobSchedule.newSchedule("2015-01-14T10:00")
+package org.deephacks.jobpipe;
+
+public class TestPipeline implements Pipeline {
+
+  @Override
+  public void execute(PipelineContext context) {
+    JobSchedule.newSchedule(context)
       .task(Task1.class).id("1").timeRange(MINUTE).add()
       .task(Task1.class).id("4").timeRange(MINUTE).add()
       .task(Task1.class).id("10").timeRange(MINUTE).add()
@@ -29,10 +35,18 @@ Abstract [Pipeline](https://github.com/deephacks/jobpipe/blob/master/core/src/ma
       .task(Task1.class).id("7").timeRange(MINUTE).depIds("6").add()
       .task(Task1.class).id("8").timeRange(MINUTE).depIds("7").add()
       .execute();
+  }
+}
+```
+This pipeline can be executed using the command line.
+
+```bash
+java -Djobpipe.cp=my-pipeline.jar -jar jobpipe-0.0.1-cli.jar TestPipeline -range 2015-01-14T10:00
 ```
 
-The execution of this schedule may yield the following order of execution at exactly 2015-01-14T10:00. Tasks are scheduled immediately if the scheduled date have passed. Task execution is stalled until dependent tasks have valid output. Task 1, 4, 10, 12 will start in parallel.
+The execution of this schedule may yield the following order of execution at exactly 2015-01-14T10:00. Tasks are scheduled immediately if the scheduled date have passed. Task execution is stalled until dependent tasks have valid output. Task 1, 4, 10, 12 may start in parallel.
 
 ```java
 12, 11, 10, 9, 4, 6, 5, 1, 7, 3, 0, 8, 2
 ```
+
