@@ -50,7 +50,7 @@ public class TestPipeline implements Pipeline {
 This pipeline can be executed using the command line.
 
 ```bash
-java -Djobpipe.cp=my-pipeline.jar -jar jobpipe-cli.jar TestPipeline -range 2015-01-14T10:00
+java -jar jobpipe-cli.jar TestPipeline -range 2015-01-14T10:00
 ```
 
 The execution of this schedule may yield the following order of execution at exactly 2016-01-14T10:00. Tasks are scheduled immediately if the scheduled date have passed. Task execution is stalled until dependent tasks have valid output. Task 1, 4, 10, 12 may start in parallel.
@@ -84,7 +84,7 @@ Time ranges can be sepecified minutely (2016-01-10T10:10), hourly (2016-01-10T22
 Tasks accepts arguments that can be parsed with a library like [joptsimple](https://pholser.github.io/jopt-simple/).
 
 ```bash
-java -Djobpipe.cp=my-pipeline.jar -jar jobpipe-cli.jar TestPipeline -range 2016-w01 -param1 value1
+java -jar jobpipe-cli.jar TestPipeline -range 2016-w01 -param1 value1
 ```
 
 ```java
@@ -144,3 +144,13 @@ public class JobObserverLog implements JobObserver {
       .execute().awaitFinish();
 ```
 
+#### Example 6 - Command line
+
+The command line jar provides a way for triggering a schedule at a certain time range, like 2016-01, 2013-W12, 2016-10-11 or 2013-12-01T12. Users can also choose to execute only single task through the ```-task``` option. Tasks are provided through user built jar files either in the ```/lib``` directory of the same directory as the command line jar and/or through the system property ```-Djobpipe.cp```. 
+
+The following command run task 'task1' of the Pipeline class implementation that matches the regexp ```HadoopPipeline``` and loads all files in the ```/home/user/hadoop-tasks``` and ```$HADOOP_HOME/share/hadoop/yarn``` directory (non-recursive).
+
+```bash
+export JOBPIPE_CP=/home/user/hadoop-tasks:$HADOOP_HOME/share/hadoop/yarn
+java -Djobpipe.cp=$JOBPIPE_CP -jar jobpipe-cli.jar HadoopPipeline -range 2016-01 -task task1
+```
