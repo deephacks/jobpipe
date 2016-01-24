@@ -3,43 +3,33 @@ package org.deephacks.jobpipe;
 public class Tasks {
 
   @TaskSpec(timeRange = TimeRangeType.DAY)
-  public static class Task1 extends Task {
-    FileOutput output;
-
-    public Task1(TaskContext context) {
-      super(context);
-      this.output = new FileOutput();
-    }
+  public static class Task1 implements Task {
+    TmpFileOutput output = new TmpFileOutput();
 
     @Override
-    public void execute() {
+    public void execute(TaskContext ctx) {
       sleep(100);
       output.create();
     }
 
     @Override
-    public TaskOutput getOutput() {
+    public TaskOutput getOutput(TaskContext ctx) {
       return output;
     }
   }
 
   @TaskSpec(timeRange = TimeRangeType.MINUTE)
-  public static class Task2 extends Task {
-    FileOutput output;
-
-    public Task2(TaskContext context) {
-      super(context);
-      this.output = new FileOutput();
-    }
+  public static class Task2 implements Task {
+    TmpFileOutput output = new TmpFileOutput();
 
     @Override
-    public void execute() {
+    public void execute(TaskContext ctx) {
       sleep(100);
       output.create();
     }
 
     @Override
-    public TaskOutput getOutput() {
+    public TaskOutput getOutput(TaskContext ctx) {
       return output;
     }
   }

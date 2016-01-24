@@ -132,8 +132,8 @@ public class JobSchedule {
   /**
    * @return all tasks that have been scheduled, including finished tasks.
    */
-  public List<Task> getScheduledTasks() {
-    return schedule.stream().map(node -> node.getTask()).collect(Collectors.toList());
+  public List<TaskStatus> getScheduledTasks() {
+    return schedule.stream().map(node -> node.getStatus()).collect(Collectors.toList());
   }
 
   private class ScheduleTask implements Runnable {
@@ -147,7 +147,7 @@ public class JobSchedule {
     public void run() {
       for (Node dep : node.getDependencies()) {
         if (dep.getStatus().hasFailed()) {
-          node.getStatus().failedDep(dep.getTask().getContext());
+          node.getStatus().failedDep(dep.getContext());
           return;
         } else  if (!dep.hasOutput()) {
           retry(1);
@@ -210,10 +210,10 @@ public class JobSchedule {
 
 
     /**
-     * @param cls create a new task
+     * @param task create a new task
      */
-    public TaskBuilder task(Class<? extends Task> cls) {
-      return new TaskBuilder(cls, this);
+    public TaskBuilder task(Task task) {
+      return new TaskBuilder(task, this);
     }
 
     /**
@@ -268,15 +268,15 @@ public class JobSchedule {
 
 
   public static class TaskBuilder {
-    private final Class<? extends Task> cls;
+    private final Task task;
     private String id;
     private List<String> deps = new ArrayList<>();
     private TimeRangeType timeRangeType;
     private ScheduledThreadPoolExecutor executor;
     private JobScheduleBuilder jobScheduleBuilder;
 
-    private TaskBuilder(Class<? extends Task> cls, JobScheduleBuilder jobScheduleBuilder) {
-      this.cls = cls;
+    private TaskBuilder(Task task, JobScheduleBuilder jobScheduleBuilder) {
+      this.task = task;
       this.jobScheduleBuilder = jobScheduleBuilder;
     }
 
@@ -344,7 +344,7 @@ public class JobSchedule {
      * Adds this task to the schedule.
      */
     public JobScheduleBuilder add() {
-      TaskSpec taskSpec = cls.getAnnotation(TaskSpec.class);
+      TaskSpec taskSpec = task.getClass().getAnnotation(TaskSpec.class);
       if (taskSpec != null) {
         if (timeRangeType == null) {
           timeRangeType = taskSpec.timeRange();
@@ -354,14 +354,14 @@ public class JobSchedule {
         }
       }
       if (id == null) {
-        id = cls.getSimpleName();
+        id = task.getClass().getSimpleName();
       }
       for (TimeRange range : timeRangeType.ranges(jobScheduleBuilder.timeRange)) {
         ScheduledThreadPoolExecutor executor = Optional.ofNullable(this.executor)
           .orElseGet(() -> jobScheduleBuilder.defaultScheduler = Optional.ofNullable(jobScheduleBuilder.defaultScheduler)
             .orElseGet(() -> new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())));
         executor.setRemoveOnCancelPolicy(true);
-        Node node = new Node(id, cls, range, executor, jobScheduleBuilder.args, jobScheduleBuilder.observer);
+        Node node = new Node(id, task, range, executor, jobScheduleBuilder.args, jobScheduleBuilder.observer);
         for (String dep : deps) {
           List<Node> nodes = jobScheduleBuilder.tasks.get(dep);
           if (nodes == null) {

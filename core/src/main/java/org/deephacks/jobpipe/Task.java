@@ -6,12 +6,7 @@ package org.deephacks.jobpipe;
  *
  * A task may be annotated with {@link org.deephacks.jobpipe.TaskSpec} default values.
  */
-public abstract class Task {
-  private TaskContext context;
-
-  public Task(TaskContext context) {
-    this.context = context;
-  }
+public interface Task {
 
   /**
    * Executes when all dependent tasks have executed.
@@ -19,35 +14,14 @@ public abstract class Task {
    * Execution will be skipped if the task has previously valid output.
    *
    * Any exception thrown will fail this task and tasks that depends on it.
+   *
+   * @param context Provides information regarding the execution.
    */
-  public abstract void execute();
+  void execute(TaskContext context);
 
   /**
    * @return a persistent location of output, like a local directory or HDFS path.
    */
-  public abstract TaskOutput getOutput();
+  <T extends TaskOutput> T getOutput(TaskContext context);
 
-  public TaskContext getContext() {
-    return context;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    Task task = (Task) o;
-
-    return context != null ? context.equals(task.context) : task.context == null;
-  }
-
-  @Override
-  public int hashCode() {
-    return context != null ? context.hashCode() : 0;
-  }
-
-  @Override
-  public String toString() {
-    return "[" + context.id + "," + context.node.getRange() + "]";
-  }
 }

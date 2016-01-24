@@ -5,25 +5,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public abstract class FileTokenOutputTask extends Task {
-  protected FileTokenOutput output;
-
-  public FileTokenOutputTask(TaskContext context) {
-    super(context);
-    Path path = Paths.get("/tmp/tasks/" + getContext().getId() + "/" + getContext().getTimeRange().format());
-    this.output = new FileTokenOutput(path);
-  }
+public abstract class FileTokenOutputTask implements Task {
+  private String PATH_FORMAT = "/tmp/tasks/%s/%s";
 
   @Override
-  public TaskOutput getOutput() {
-    return output;
+  public FileTokenOutput getOutput(TaskContext ctx) {
+    String path = String.format(PATH_FORMAT, ctx.getId(), ctx.getTimeRange().format());
+    return new FileTokenOutput(path);
   }
 
   public static final class FileTokenOutput implements TaskOutput {
     private final Path path;
 
-    public FileTokenOutput(Path path) {
-      this.path = path;
+    public FileTokenOutput(String path) {
+      this.path = Paths.get(path);
     }
 
     public Path create() {

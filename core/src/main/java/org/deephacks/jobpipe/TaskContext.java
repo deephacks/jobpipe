@@ -3,6 +3,9 @@ package org.deephacks.jobpipe;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Provides information regarding the current task execution.
+ */
 public class TaskContext {
   final String id;
   final Node node;
@@ -15,7 +18,7 @@ public class TaskContext {
   }
 
   public boolean hasOutput() {
-    return node.getTask().getOutput().exist();
+    return node.getTask().getOutput(this).exist();
   }
 
   /**

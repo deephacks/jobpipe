@@ -27,24 +27,25 @@ public class JobSchedulerTest {
    */
   @Test
   public void testDirectedAsyclicGraph() {
+    Task1 task = new Task1();
     JobSchedule schedule = JobSchedule.newSchedule("2015-01-14T10:00")
       .observer(observer)
-      .task(Task1.class).id("1").timeRange(MINUTE).add()
-      .task(Task1.class).id("4").timeRange(MINUTE).add()
-      .task(Task1.class).id("10").timeRange(MINUTE).add()
-      .task(Task1.class).id("12").timeRange(MINUTE).add()
-      .task(Task1.class).id("11").timeRange(MINUTE).depIds("12").add()
-      .task(Task1.class).id("9").timeRange(MINUTE).depIds("10", "11", "12").add()
-      .task(Task1.class).id("6").timeRange(MINUTE).depIds("4", "9").add()
-      .task(Task1.class).id("5").timeRange(MINUTE).depIds("4").add()
-      .task(Task1.class).id("0").timeRange(MINUTE).depIds("1", "5", "6").add()
-      .task(Task1.class).id("3").timeRange(MINUTE).depIds("5").add()
-      .task(Task1.class).id("2").timeRange(MINUTE).depIds("0", "3").add()
-      .task(Task1.class).id("7").timeRange(MINUTE).depIds("6").add()
-      .task(Task1.class).id("8").timeRange(MINUTE).depIds("7").add()
+      .task(task).id("1").timeRange(MINUTE).add()
+      .task(task).id("4").timeRange(MINUTE).add()
+      .task(task).id("10").timeRange(MINUTE).add()
+      .task(task).id("12").timeRange(MINUTE).add()
+      .task(task).id("11").timeRange(MINUTE).depIds("12").add()
+      .task(task).id("9").timeRange(MINUTE).depIds("10", "11", "12").add()
+      .task(task).id("6").timeRange(MINUTE).depIds("4", "9").add()
+      .task(task).id("5").timeRange(MINUTE).depIds("4").add()
+      .task(task).id("0").timeRange(MINUTE).depIds("1", "5", "6").add()
+      .task(task).id("3").timeRange(MINUTE).depIds("5").add()
+      .task(task).id("2").timeRange(MINUTE).depIds("0", "3").add()
+      .task(task).id("7").timeRange(MINUTE).depIds("6").add()
+      .task(task).id("8").timeRange(MINUTE).depIds("7").add()
       .execute();
     List<String> taskIds = schedule.getScheduledTasks().stream()
-      .map(task -> task.getContext().getId()).collect(Collectors.toList());
+      .map(t -> t.getContext().getId()).collect(Collectors.toList());
     assertThat(taskIds.size(), is(13));
     assertTrue(taskIds.containsAll(Arrays.asList(
       "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")));
@@ -53,25 +54,26 @@ public class JobSchedulerTest {
 
   @Test
   public void testExecuteTaskId() {
+    Task1 task = new Task1();
     JobSchedule schedule = JobSchedule.newSchedule("2015-12-01T10:00")
       .observer(observer)
-      .task(Task1.class).id("1").timeRange(MINUTE).add()
-      .task(Task1.class).id("4").timeRange(MINUTE).add()
-      .task(Task1.class).id("10").timeRange(MINUTE).add()
-      .task(Task1.class).id("12").timeRange(MINUTE).add()
-      .task(Task1.class).id("11").timeRange(MINUTE).depIds("12").add()
-      .task(Task1.class).id("9").timeRange(MINUTE).depIds("10", "11", "12").add()
-      .task(Task1.class).id("6").timeRange(MINUTE).depIds("4", "9").add()
-      .task(Task1.class).id("5").timeRange(MINUTE).depIds("4").add()
-      .task(Task1.class).id("0").timeRange(MINUTE).depIds("1", "5", "6").add()
-      .task(Task1.class).id("3").timeRange(MINUTE).depIds("5").add()
-      .task(Task1.class).id("2").timeRange(MINUTE).depIds("0", "3").add()
-      .task(Task1.class).id("7").timeRange(MINUTE).depIds("6").add()
-      .task(Task1.class).id("8").timeRange(MINUTE).depIds("7").add()
+      .task(task).id("1").timeRange(MINUTE).add()
+      .task(task).id("4").timeRange(MINUTE).add()
+      .task(task).id("10").timeRange(MINUTE).add()
+      .task(task).id("12").timeRange(MINUTE).add()
+      .task(task).id("11").timeRange(MINUTE).depIds("12").add()
+      .task(task).id("9").timeRange(MINUTE).depIds("10", "11", "12").add()
+      .task(task).id("6").timeRange(MINUTE).depIds("4", "9").add()
+      .task(task).id("5").timeRange(MINUTE).depIds("4").add()
+      .task(task).id("0").timeRange(MINUTE).depIds("1", "5", "6").add()
+      .task(task).id("3").timeRange(MINUTE).depIds("5").add()
+      .task(task).id("2").timeRange(MINUTE).depIds("0", "3").add()
+      .task(task).id("7").timeRange(MINUTE).depIds("6").add()
+      .task(task).id("8").timeRange(MINUTE).depIds("7").add()
       .targetTask("6")
       .execute();
     List<String> taskIds = schedule.getScheduledTasks().stream()
-      .map(task -> task.getContext().getId()).collect(Collectors.toList());
+      .map(t -> t.getContext().getId()).collect(Collectors.toList());
     assertThat(taskIds.size(), is(6));
     assertTrue(taskIds.containsAll(Arrays.asList(
       "4", "6", "9", "10", "11", "12")));
@@ -80,28 +82,29 @@ public class JobSchedulerTest {
 
   @Test
   public void testExecutePipelineContext() {
+    Task1 task = new Task1();
     TimeRange range = new TimeRange("2012-10-10T10:00");
     String taskId = "0";
     String[] args = new String[]{"hello"};
     PipelineContext context = new PipelineContext(range, taskId, args);
     JobSchedule schedule = JobSchedule.newSchedule(context)
       .observer(observer)
-      .task(Task1.class).id("1").timeRange(MINUTE).add()
-      .task(Task1.class).id("4").timeRange(MINUTE).add()
-      .task(Task1.class).id("10").timeRange(MINUTE).add()
-      .task(Task1.class).id("12").timeRange(MINUTE).add()
-      .task(Task1.class).id("11").timeRange(MINUTE).depIds("12").add()
-      .task(Task1.class).id("9").timeRange(MINUTE).depIds("10", "11", "12").add()
-      .task(Task1.class).id("6").timeRange(MINUTE).depIds("4", "9").add()
-      .task(Task1.class).id("5").timeRange(MINUTE).depIds("4").add()
-      .task(Task1.class).id("0").timeRange(MINUTE).depIds("1", "5", "6").add()
-      .task(Task1.class).id("3").timeRange(MINUTE).depIds("5").add()
-      .task(Task1.class).id("2").timeRange(MINUTE).depIds("0", "3").add()
-      .task(Task1.class).id("7").timeRange(MINUTE).depIds("6").add()
-      .task(Task1.class).id("8").timeRange(MINUTE).depIds("7").add()
+      .task(task).id("1").timeRange(MINUTE).add()
+      .task(task).id("4").timeRange(MINUTE).add()
+      .task(task).id("10").timeRange(MINUTE).add()
+      .task(task).id("12").timeRange(MINUTE).add()
+      .task(task).id("11").timeRange(MINUTE).depIds("12").add()
+      .task(task).id("9").timeRange(MINUTE).depIds("10", "11", "12").add()
+      .task(task).id("6").timeRange(MINUTE).depIds("4", "9").add()
+      .task(task).id("5").timeRange(MINUTE).depIds("4").add()
+      .task(task).id("0").timeRange(MINUTE).depIds("1", "5", "6").add()
+      .task(task).id("3").timeRange(MINUTE).depIds("5").add()
+      .task(task).id("2").timeRange(MINUTE).depIds("0", "3").add()
+      .task(task).id("7").timeRange(MINUTE).depIds("6").add()
+      .task(task).id("8").timeRange(MINUTE).depIds("7").add()
       .execute();
     List<String> taskIds = schedule.getScheduledTasks().stream()
-      .map(task -> task.getContext().getId()).collect(Collectors.toList());
+      .map(t -> t.getContext().getId()).collect(Collectors.toList());
     assertThat(taskIds.size(), is(9));
     assertTrue(taskIds.containsAll(Arrays.asList(
       "4", "6", "9", "10", "11", "12", "0", "1")));
@@ -113,11 +116,12 @@ public class JobSchedulerTest {
    */
   @Test
   public void testSameTaskDifferentTimeRange() {
+    Task1 task = new Task1();
     JobSchedule schedule = JobSchedule.newSchedule("2011-10-17T15:16")
-      .task(Task1.class).id("1-sec").timeRange(SECOND).add()
-      .task(Task1.class).id("1-min").timeRange(MINUTE).depIds("1-sec").add()
+      .task(task).id("1-sec").timeRange(SECOND).add()
+      .task(task).id("1-min").timeRange(MINUTE).depIds("1-sec").add()
       .execute();
-    List<Task> tasks = schedule.getScheduledTasks();
+    List<TaskStatus> tasks = schedule.getScheduledTasks();
     assertThat(tasks.size(), is(60 + 1));
     schedule.awaitFinish();
   }
@@ -125,7 +129,7 @@ public class JobSchedulerTest {
   @Test
   public void testTooShortTimePeriod() {
     JobSchedule schedule = JobSchedule.newSchedule("2006-01-17T15:16:01")
-      .task(Task1.class).id("1-min").timeRange(MINUTE).add()
+      .task(new Task1()).id("1-min").timeRange(MINUTE).add()
       .execute();
     assertThat(schedule.getScheduledTasks().size(), is(0));
   }
@@ -134,7 +138,7 @@ public class JobSchedulerTest {
   public void testMissingDep() {
     try {
       JobSchedule.newSchedule("2000-01-17T15:16")
-        .task(Task1.class).id("1-min").timeRange(MINUTE).depIds("missing").add()
+        .task(new Task1()).id("1-min").timeRange(MINUTE).depIds("missing").add()
         .execute();
       fail("should fail");
     } catch (IllegalArgumentException e) {
@@ -147,16 +151,16 @@ public class JobSchedulerTest {
     ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
     JobSchedule.newSchedule("2011-01-17T15:16")
       .observer(observer)
-      .task(Task1.class).timeRange(SECOND).add()
-      .task(Task2.class).deps(Task1.class).executor(executor).add()
+      .task(new Task1()).timeRange(SECOND).add()
+      .task(new Task2()).deps(Task1.class).executor(executor).add()
       .execute().awaitFinish();
   }
 
   @Test
   public void testOutputFromDependency() {
     JobSchedule.newSchedule("2013-01-17T15:16")
-      .task(Task1.class).timeRange(SECOND).add()
-      .task(CheckOutputTask.class).timeRange(TimeRangeType.MINUTE).deps(Task1.class).add()
+      .task(new Task1()).timeRange(SECOND).add()
+      .task(new CheckOutputTask()).timeRange(TimeRangeType.MINUTE).deps(Task1.class).add()
       .execute().awaitFinish();
   }
 
@@ -166,22 +170,22 @@ public class JobSchedulerTest {
     for (int i = 0; i < 3; i++) {
       JobSchedule schedule = JobSchedule.newSchedule("1999-01-17")
         .observer(observer)
-        .task(FailingTask.class).timeRange(TimeRangeType.HOUR).add()
-        .task(Task1.class).timeRange(TimeRangeType.DAY).deps(FailingTask.class).add()
+        .task(new FailingTask()).timeRange(TimeRangeType.HOUR).add()
+        .task(new Task1()).timeRange(TimeRangeType.DAY).deps(FailingTask.class).add()
         .execute();
       schedule.awaitFinish();
-      List<Task> tasks = schedule.getScheduledTasks();
+      List<TaskStatus> tasks = schedule.getScheduledTasks();
       assertThat(tasks.size(), is(24 + 1));
 
-      List<Task> errors = tasks.stream()
+      List<TaskStatus> errors = tasks.stream()
         .filter(t -> t.getContext().getStatus().code() == TaskStatusCode.ERROR_EXECUTE)
         .collect(Collectors.toList());
       assertThat(errors.size(), is(24));
-      for (Task t : errors) {
+      for (TaskStatus t : errors) {
         assertThat(t.getContext().getId(), is("FailingTask"));
       }
 
-      List<Task> deps = tasks.stream()
+      List<TaskStatus> deps = tasks.stream()
         .filter(t -> t.getContext().getStatus().code() == TaskStatusCode.ERROR_DEPENDENCY)
         .collect(Collectors.toList());
       assertThat(deps.size(), is(1));
@@ -189,37 +193,26 @@ public class JobSchedulerTest {
     }
   }
 
-  public static class FailingTask extends Task {
-    FileOutput output;
-
-    public FailingTask(TaskContext context) {
-      super(context);
-      this.output = new FileOutput();
-    }
+  public static class FailingTask implements Task {
 
     @Override
-    public void execute() {
+    public void execute(TaskContext ctx) {
       sleep(500);
       throw new RuntimeException("message");
     }
 
     @Override
-    public TaskOutput getOutput() {
-      return output;
+    public TaskOutput getOutput(TaskContext ctx) {
+      return new TmpFileOutput();
     }
   }
 
-  public static class CheckOutputTask extends Task {
-    FileOutput output;
-
-    public CheckOutputTask(TaskContext context) {
-      super(context);
-      this.output = new FileOutput();
-    }
+  public static class CheckOutputTask implements Task {
+    TmpFileOutput output = new TmpFileOutput();
 
     @Override
-    public void execute() {
-      List<File> files = getContext().getDependecyOutput().stream()
+    public void execute(TaskContext ctx) {
+      List<File> files = ctx.getDependecyOutput().stream()
         .map(o -> (File) o.get()).peek(file -> assertTrue(file.exists()))
         .collect(Collectors.toList());
       assertThat(files.size(), is(60));
@@ -227,7 +220,7 @@ public class JobSchedulerTest {
     }
 
     @Override
-    public TaskOutput getOutput() {
+    public TaskOutput getOutput(TaskContext ctx) {
       return output;
     }
   }

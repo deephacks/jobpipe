@@ -4,10 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-public class FileOutput implements TaskOutput {
+public class TmpFileOutput implements TaskOutput {
   File file;
 
-  public FileOutput() {
+  public TmpFileOutput() {
     try {
       this.file = Files.createTempDirectory("").toFile();
       this.file.delete();

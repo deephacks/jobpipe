@@ -17,22 +17,26 @@ class Node {
   private final String[] args;
   private final AtomicReference<TaskStatus> status = new AtomicReference<>();
 
-  Node(String id, Class<? extends Task> cls, TimeRange range, ScheduledExecutorService executor, String[] args, JobObserver observer) {
+  Node(String id, Task task, TimeRange range, ScheduledExecutorService executor, String[] args, JobObserver observer) {
     this.id = id;
     this.range = range;
     this.args = args;
     this.executor = executor;
     this.context = new TaskContext(this);
-    this.task = newTask(cls, context);
+    this.task = task;
     this.status.set(new TaskStatus(context, observer));
   }
 
   void execute() {
-    task.execute();
+    task.execute(context);
+  }
+
+  public TaskContext getContext() {
+    return context;
   }
 
   TaskOutput getTaskOutput() {
-    return task.getOutput();
+    return task.getOutput(context);
   }
 
   DateTime getTimeout() {
@@ -89,15 +93,6 @@ class Node {
 
   boolean hasOutput() {
     return context.hasOutput();
-  }
-
-  Task newTask(Class<? extends Task> cls, TaskContext context) {
-    try {
-      Constructor<? extends Task> constructor = cls.getConstructor(TaskContext.class);
-      return constructor.newInstance(context);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
   ScheduledExecutorService getExecutor() {
