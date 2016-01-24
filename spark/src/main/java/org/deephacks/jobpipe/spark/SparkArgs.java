@@ -1,6 +1,7 @@
 package org.deephacks.jobpipe.spark;
 
 import com.google.gson.Gson;
+import org.apache.spark.SparkConf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,13 @@ public class SparkArgs {
       }
     }
     return null;
+  }
+
+  public SparkConf getSparkConf() {
+    SparkConf sparkConf = new SparkConf()
+      .setAppName(appName)
+      .setMaster(master);
+    return sparkConf;
   }
 
   @Override

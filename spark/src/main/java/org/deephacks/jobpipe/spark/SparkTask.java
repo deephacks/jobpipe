@@ -27,6 +27,7 @@ public class SparkTask implements Task {
 
   @Override
   public void execute(TaskContext ctx) {
+    Process process = null;
     try {
       SparkLauncher launcher = createLauncher();
       List<String> depOutput = ctx.getDependecyOutput().stream()
@@ -40,12 +41,16 @@ public class SparkTask implements Task {
       String[] args = new SparkArgs(builder.getAppName(), builder.master, input, output, depOutput)
         .toArgs(ctx.getArgs());
       launcher.addAppArgs(args);
-      Process process = launcher.launch();
+      process = launcher.launch();
       new Thread(new InputStreamThread(process.getInputStream(), System.out)).start();
       new Thread(new InputStreamThread(process.getErrorStream(), System.out)).start();
       process.waitFor();
     } catch (Exception e) {
       throw new RuntimeException(e);
+    } finally {
+      if (process != null && process.exitValue() != 0) {
+        throw new RuntimeException("process exit status " + process.exitValue());
+      }
     }
   }
 

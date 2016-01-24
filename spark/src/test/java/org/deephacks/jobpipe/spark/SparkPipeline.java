@@ -3,7 +3,6 @@ package org.deephacks.jobpipe.spark;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.deephacks.jobpipe.*;
-import org.joda.time.DateTime;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +21,7 @@ public class SparkPipeline implements Pipeline {
   public static void main(String[] args) {
     SparkTask task = SparkTask.newBuilder(SparkTask1.class)
       .setBasePath("/tmp")
+      .setMaster("local")
       .setInputPattern("${basePath}/files")
       .setOutput(LocalOutput::new)
       .build();
@@ -71,10 +70,7 @@ public class SparkPipeline implements Pipeline {
         List<String> lines = Files.list(Paths.get(sparkArgs.input))
           .flatMap(SparkTask1::lines)
           .collect(Collectors.toList());
-        SparkConf sparkConf = new SparkConf()
-          .setAppName(sparkArgs.appName)
-          .setMaster("local");
-        new JavaSparkContext(sparkConf)
+        new JavaSparkContext(sparkArgs.getSparkConf())
           .parallelize(lines)
           .saveAsTextFile(sparkArgs.output);
       } catch (IOException e) {
