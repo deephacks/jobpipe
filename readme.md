@@ -117,8 +117,8 @@ Task execution parallelism can be controlled globally or individually using
     
     JobSchedule.newSchedule(context)
       .scheduler(globalMultiThreaded)
-      .task(Task1.class).add()
-      .task(Task2.class).deps(Task1.class).scheduler(singleThreaded).add()
+      .task(new Task1()).add()
+      .task(new Task2()).deps(Task1.class).scheduler(singleThreaded).add()
       .execute().awaitFinish();
 ```
 
