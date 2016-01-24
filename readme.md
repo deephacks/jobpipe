@@ -11,7 +11,7 @@ between tasks as a sequence of continuous executions in time. These tasks can be
 - Failed tasks (without a previously valid output) fail its dependent tasks transitively. 
 - Tasks may execute in parallel if their inputs are satisfied.
 
-The execution model of jobpipe is similar to that of a compiler, with the added dimension of time ranges. 
+Jobpipe is a minimal library and unopinionated on how users choose to build their applications with regards to logging, configuration, monitoring, dependency injection, persistence, thread execution etc.
 
 [Download](http://search.maven.org/remotecontent?filepath=org/deephacks/jobpipe/jobpipe-cli/0.0.1/jobpipe-cli-0.0.1-capsule-fat.jar) the latest jobpipe release.
 
