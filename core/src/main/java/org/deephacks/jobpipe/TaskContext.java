@@ -14,7 +14,7 @@ public class TaskContext {
   TaskContext(Node node) {
     this.id = node.getId();
     this.node = node;
-    this.args = node.getArgs();
+    this.args = node.getArgs() == null ? new String[0] : node.getArgs();
   }
 
   public boolean hasOutput() {
