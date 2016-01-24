@@ -156,3 +156,7 @@ The following command run task 'task1' of the Pipeline class implementation that
 export JOBPIPE_CP=/home/user/hadoop-tasks:$HADOOP_HOME/share/hadoop/yarn
 java -Djobpipe.cp=$JOBPIPE_CP -jar jobpipe-cli.jar HadoopPipeline -range 2016-01 -task task1
 ```
+
+#### Example 7 - Apache Spark
+
+Example of how to run Apache Spark pipelines are found in the [SparkPipeline](https://github.com/deephacks/jobpipe/blob/master/spark/src/test/java/org/deephacks/jobpipe/spark/SparkPipeline.java) test.
