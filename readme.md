@@ -124,8 +124,8 @@ Task execution parallelism can be controlled globally or individually using
 
 #### Example 5 - Observers
 
-Jobpipe is not logging opinionated, but this can be implemented by observing task status transitions. Observers may also
-reject task execution. Observers can be used to create a persistent history of task execution.
+Observers can be used to implement things like logging, monitoring, persistent history etc. Observers may also
+reject task execution.
 
 ```java
 public class JobObserverLog implements JobObserver {
