@@ -40,7 +40,7 @@ class Node {
   }
 
   DateTime getTimeout() {
-    return range.from();
+    return range.to();
   }
 
   Task getTask() {
