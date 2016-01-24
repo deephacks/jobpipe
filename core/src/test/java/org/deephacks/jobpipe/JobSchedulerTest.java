@@ -148,11 +148,11 @@ public class JobSchedulerTest {
 
   @Test
   public void testDifferentTaskTypes() {
-    ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+    Scheduler scheduler = new DefaultScheduler(1);
     JobSchedule.newSchedule("2011-01-17T15:16")
       .observer(observer)
       .task(new Task1()).timeRange(SECOND).add()
-      .task(new Task2()).deps(Task1.class).executor(executor).add()
+      .task(new Task2()).deps(Task1.class).scheduler(scheduler).add()
       .execute().awaitFinish();
   }
 

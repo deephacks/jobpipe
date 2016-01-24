@@ -24,6 +24,12 @@ public class TaskStatus {
     return code;
   }
 
+  public boolean isDone() {
+    return code != TaskStatusCode.NEW
+      && code != TaskStatusCode.RUNNING
+      && code != TaskStatusCode.SCHEDULED;
+  }
+
   public boolean hasFailed() {
     return TaskStatusCode.ERROR_DEPENDENCY == code ||
       TaskStatusCode.ERROR_EXECUTE == code;

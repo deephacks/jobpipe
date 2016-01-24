@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 public class JobSchedule {
   private final TimeRange timeRange;
   private final Map<String, List<Node>> tasks;
-  private final ConcurrentLinkedDeque<ScheduledFuture<?>> scheduleHandles = new ConcurrentLinkedDeque<>();
   private final List<Node> schedule = new ArrayList<>();
 
   private JobSchedule(JobScheduleBuilder builder) {
@@ -108,8 +107,8 @@ public class JobSchedule {
    * @return all tasks are finished executing.
    */
   public boolean isFinished() {
-    for (ScheduledFuture<?> handle : scheduleHandles) {
-      if (!handle.isDone()) {
+    for (TaskStatus status : getScheduledTasks()) {
+      if (!status.isDone()) {
         return false;
       }
     }
@@ -170,18 +169,14 @@ public class JobSchedule {
 
     void retry(int sec) {
       if (node.getStatus().scheduled()) {
-        ScheduledFuture<?> handle = node.getExecutor()
-          .schedule(new ScheduleTask(node), sec, TimeUnit.SECONDS);
-        scheduleHandles.add(handle);
+        node.getScheduler().schedule(new ScheduleTask(node), sec, TimeUnit.SECONDS);
       }
     }
 
     void schedule() {
       if (node.getStatus().scheduled()) {
         long timeout = node.getTimeout().getMillis() - System.currentTimeMillis();
-        ScheduledFuture<?> handle = node.getExecutor()
-          .schedule(this, timeout, TimeUnit.MILLISECONDS);
-        scheduleHandles.add(handle);
+        node.getScheduler().schedule(this, timeout, TimeUnit.MILLISECONDS);
       }
     }
   }
@@ -189,7 +184,7 @@ public class JobSchedule {
   public static class JobScheduleBuilder {
     private TimeRange timeRange;
     private Map<String, List<Node>> tasks = new HashMap<>();
-    private ScheduledThreadPoolExecutor defaultScheduler;
+    private Scheduler defaultScheduler;
     private JobObserver observer;
     private String taskId;
     private String[] args;
@@ -241,10 +236,10 @@ public class JobSchedule {
     }
 
     /**
-     * @param executor the default executor to use for scheduling of tasks.
+     * @param scheduler the default scheduler to use for scheduling of tasks.
      */
-    public JobScheduleBuilder executor(ScheduledThreadPoolExecutor executor) {
-      this.defaultScheduler = executor;
+    public JobScheduleBuilder scheduler(Scheduler scheduler) {
+      this.defaultScheduler = scheduler;
       return this;
     }
 
@@ -259,8 +254,6 @@ public class JobSchedule {
             throw new RuntimeException(e);
           }
         }
-        jobSchedule.getJobSchedule(taskId).stream()
-          .forEach(node -> node.getExecutor().shutdownNow());
       }).start();
       return jobSchedule;
     }
@@ -272,7 +265,7 @@ public class JobSchedule {
     private String id;
     private List<String> deps = new ArrayList<>();
     private TimeRangeType timeRangeType;
-    private ScheduledThreadPoolExecutor executor;
+    private Scheduler scheduler;
     private JobScheduleBuilder jobScheduleBuilder;
 
     private TaskBuilder(Task task, JobScheduleBuilder jobScheduleBuilder) {
@@ -333,10 +326,10 @@ public class JobSchedule {
     }
 
     /**
-     * @param executor override the default executor for this task.
+     * @param scheduler override the default scheduler for this task.
      */
-    public TaskBuilder executor(ScheduledThreadPoolExecutor executor) {
-      this.executor = executor;
+    public TaskBuilder scheduler(Scheduler scheduler) {
+      this.scheduler = scheduler;
       return this;
     }
 
@@ -357,11 +350,10 @@ public class JobSchedule {
         id = task.getClass().getSimpleName();
       }
       for (TimeRange range : timeRangeType.ranges(jobScheduleBuilder.timeRange)) {
-        ScheduledThreadPoolExecutor executor = Optional.ofNullable(this.executor)
+        Scheduler scheduler = Optional.ofNullable(this.scheduler)
           .orElseGet(() -> jobScheduleBuilder.defaultScheduler = Optional.ofNullable(jobScheduleBuilder.defaultScheduler)
-            .orElseGet(() -> new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())));
-        executor.setRemoveOnCancelPolicy(true);
-        Node node = new Node(id, task, range, executor, jobScheduleBuilder.args, jobScheduleBuilder.observer);
+            .orElseGet(() -> new DefaultScheduler()));
+        Node node = new Node(id, task, range, scheduler, jobScheduleBuilder.args, jobScheduleBuilder.observer);
         for (String dep : deps) {
           List<Node> nodes = jobScheduleBuilder.tasks.get(dep);
           if (nodes == null) {
@@ -382,5 +374,3 @@ public class JobSchedule {
     }
   }
 }
-
-

@@ -13,15 +13,15 @@ class Node {
   private final TimeRange range;
   private final List<Node> dependencies = new ArrayList<>();
   private final Task task;
-  private final ScheduledExecutorService executor;
+  private final Scheduler scheduler;
   private final String[] args;
   private final AtomicReference<TaskStatus> status = new AtomicReference<>();
 
-  Node(String id, Task task, TimeRange range, ScheduledExecutorService executor, String[] args, JobObserver observer) {
+  Node(String id, Task task, TimeRange range, Scheduler scheduler, String[] args, JobObserver observer) {
     this.id = id;
     this.range = range;
     this.args = args;
-    this.executor = executor;
+    this.scheduler = scheduler;
     this.context = new TaskContext(this);
     this.task = task;
     this.status.set(new TaskStatus(context, observer));
@@ -95,8 +95,8 @@ class Node {
     return context.hasOutput();
   }
 
-  ScheduledExecutorService getExecutor() {
-    return executor;
+  Scheduler getScheduler() {
+    return scheduler;
   }
 
   @Override
