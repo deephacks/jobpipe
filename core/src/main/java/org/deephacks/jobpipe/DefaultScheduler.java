@@ -22,4 +22,9 @@ public class DefaultScheduler implements Scheduler {
   public void schedule(Runnable runnable, long delayTime, TimeUnit unit) {
     executor.schedule(runnable, delayTime, unit);
   }
+
+  @Override
+  public void shutdown() {
+    this.executor.shutdownNow();
+  }
 }

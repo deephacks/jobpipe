@@ -118,12 +118,22 @@ public class JobSchedule {
   /**
    * Waits until all tasks are finished executing.
    */
-  public void awaitFinish() {
+  public JobSchedule awaitFinish() {
     while (!isFinished()) {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
+      }
+    }
+    return this;
+  }
+
+  public void shutdownAfter() {
+    for (TaskStatus status : getScheduledTasks()) {
+      try {
+        status.getContext().node.getScheduler().shutdown();
+      } catch (Exception e) {
       }
     }
   }
@@ -148,7 +158,7 @@ public class JobSchedule {
         if (dep.getStatus().hasFailed()) {
           node.getStatus().failedDep(dep.getContext());
           return;
-        } else  if (!dep.hasOutput()) {
+        } else if (!dep.hasOutput()) {
           retry(1);
           return;
         }
@@ -246,15 +256,6 @@ public class JobSchedule {
     public JobSchedule execute() {
       JobSchedule jobSchedule = new JobSchedule(this);
       jobSchedule.execute(taskId);
-      new Thread(() -> {
-        while (!jobSchedule.isFinished()) {
-          try {
-            Thread.sleep(100);
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-          }
-        }
-      }).start();
       return jobSchedule;
     }
   }
@@ -348,6 +349,9 @@ public class JobSchedule {
       }
       if (id == null) {
         id = task.getClass().getSimpleName();
+      }
+      if (timeRangeType == null) {
+        throw new IllegalArgumentException(id + " does not have a time range.");
       }
       for (TimeRange range : timeRangeType.ranges(jobScheduleBuilder.timeRange)) {
         Scheduler scheduler = Optional.ofNullable(this.scheduler)
