@@ -37,7 +37,7 @@ public class SparkTask implements Task {
       String input = getInputPath(date);
       String output = getOutputPath(date);
 
-      String[] args = new SparkArgs(builder.getAppName(), input, output, depOutput)
+      String[] args = new SparkArgs(builder.getAppName(), builder.master, input, output, depOutput)
         .toArgs(ctx.getArgs());
       launcher.addAppArgs(args);
       Process process = launcher.launch();
@@ -87,7 +87,7 @@ public class SparkTask implements Task {
       launcher.setDeployMode(builder.deployMode);
     }
     if (builder.master != null) {
-      launcher.setDeployMode(builder.master);
+      launcher.setMaster(builder.master);
     }
     if (builder.propertiesFile != null) {
       launcher.setPropertiesFile(builder.propertiesFile);
@@ -98,7 +98,7 @@ public class SparkTask implements Task {
     launcher.addJar(getJarAbsolutePath(Task.class));
     launcher.addJar(getJarAbsolutePath(SparkTask.class));
     builder.appArgs.forEach(arg -> launcher.addAppArgs(arg));
-    builder.sparkArgs.forEach(arg -> launcher.addSparkArg(arg));
+    // builder.sparkArgs.forEach(arg -> launcher.addSparkArg(arg));
     builder.files.forEach(file -> launcher.addFile(file));
     builder.pyFiles.forEach(file -> launcher.addPyFile(file));
     builder.jars.stream().forEach(jar -> launcher.addJar(jar));
@@ -218,6 +218,10 @@ public class SparkTask implements Task {
 
     public String getAppName() {
       return appName == null ? mainClass.getSimpleName() : appName;
+    }
+
+    public String getMaster() {
+      return master == null ? "local" : master;
     }
 
     public SparkTaskBuilder setAppResource(String resource) {

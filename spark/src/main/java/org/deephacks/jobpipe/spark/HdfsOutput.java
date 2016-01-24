@@ -1,5 +1,6 @@
 package org.deephacks.jobpipe.spark;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.deephacks.jobpipe.*;
@@ -10,15 +11,19 @@ public class HdfsOutput implements TaskOutput {
   protected FileSystem fs;
   protected Path path;
 
-  public HdfsOutput(String path, FileSystem fs) {
-    this.fs = fs;
-    this.path = new Path(path);
+  public HdfsOutput(String path, Configuration conf) {
+    try {
+      this.fs = FileSystem.get(conf);
+      this.path = new Path(conf.get("fs.defaultFS"), path);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public boolean exist() {
     try {
-      return fs.exists(path);
+      return fs.exists(new Path(path, "_SUCCESS"));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -26,6 +31,6 @@ public class HdfsOutput implements TaskOutput {
 
   @Override
   public Object get() {
-    return fs;
+    return path;
   }
 }

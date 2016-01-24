@@ -10,6 +10,7 @@ public class SparkArgs {
   private static final Gson gson = new Gson();
 
   public String appName;
+  public String master;
   public String input;
   public String output;
   public List<String> dependencyOutput = new ArrayList<>();
@@ -21,9 +22,10 @@ public class SparkArgs {
     return getArg(ARG_NAME, SparkArgs.class, args);
   }
 
-  public SparkArgs(String appName, String input, String output, List<String> dependencyOutput) {
+  public SparkArgs(String appName, String master, String input, String output, List<String> dependencyOutput) {
     this.appName = appName;
     this.input = input;
+    this.master = master;
     this.output = output;
     this.dependencyOutput = dependencyOutput;
   }
