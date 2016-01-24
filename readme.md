@@ -28,20 +28,21 @@ public class TestPipeline implements Pipeline {
 
   @Override
   public void execute(PipelineContext context) {
+    Task1 task = new Task1();
     JobSchedule.newSchedule(context)
-      .task(Task1.class).id("1").timeRange(MINUTE).add()
-      .task(Task1.class).id("4").timeRange(MINUTE).add()
-      .task(Task1.class).id("10").timeRange(MINUTE).add()
-      .task(Task1.class).id("12").timeRange(MINUTE).add()
-      .task(Task1.class).id("11").timeRange(MINUTE).depIds("12").add()
-      .task(Task1.class).id("9").timeRange(MINUTE).depIds("10", "11", "12").add()
-      .task(Task1.class).id("6").timeRange(MINUTE).depIds("4", "9").add()
-      .task(Task1.class).id("5").timeRange(MINUTE).depIds("4").add()
-      .task(Task1.class).id("0").timeRange(MINUTE).depIds("1", "5", "6").add()
-      .task(Task1.class).id("3").timeRange(MINUTE).depIds("5").add()
-      .task(Task1.class).id("2").timeRange(MINUTE).depIds("0", "3").add()
-      .task(Task1.class).id("7").timeRange(MINUTE).depIds("6").add()
-      .task(Task1.class).id("8").timeRange(MINUTE).depIds("7").add()
+      .task(task).id("1").timeRange(MINUTE).add()
+      .task(task).id("4").timeRange(MINUTE).add()
+      .task(task).id("10").timeRange(MINUTE).add()
+      .task(task).id("12").timeRange(MINUTE).add()
+      .task(task).id("11").timeRange(MINUTE).depIds("12").add()
+      .task(task).id("9").timeRange(MINUTE).depIds("10", "11", "12").add()
+      .task(task).id("6").timeRange(MINUTE).depIds("4", "9").add()
+      .task(task).id("5").timeRange(MINUTE).depIds("4").add()
+      .task(task).id("0").timeRange(MINUTE).depIds("1", "5", "6").add()
+      .task(task).id("3").timeRange(MINUTE).depIds("5").add()
+      .task(task).id("2").timeRange(MINUTE).depIds("0", "3").add()
+      .task(task).id("7").timeRange(MINUTE).depIds("6").add()
+      .task(task).id("8").timeRange(MINUTE).depIds("7").add()
       .execute()
       .awaitFinish();
   }
@@ -65,8 +66,8 @@ Tasks can have different time ranges.
 
 ```java
     JobSchedule schedule = JobSchedule.newSchedule(context)
-      .task(Task1.class).timeRange(HOUR).add()
-      .task(Task2.class).timeRange(DAY).deps(Task1.class).add()
+      .task(new Task1()).timeRange(HOUR).add()
+      .task(new Task2()).timeRange(DAY).deps(Task1.class).add()
       .execute();
 ```
 
@@ -88,11 +89,11 @@ java -jar jobpipe-cli.jar TestPipeline -range 2016-w01 -param1 value1
 ```
 
 ```java
-public class ArgTask extends Task {
+public class ArgTask implements Task {
 
   @Override
-  public void execute() {
-    String[] args = getContext().getArgs();
+  public void execute(TaskContext ctx) {
+    String[] args = ctx.getArgs();
     OptionParser parser = new OptionParser();
     parser.allowsUnrecognizedOptions();
     OptionSpec<String> opt = parser.accepts("param1")
@@ -107,16 +108,17 @@ public class ArgTask extends Task {
 
 #### Example 4 - Scheduling parallelism
 
-Task execution parallelism can be controlled globally or individually using ScheduledThreadPoolExecutor. 
+Task execution parallelism can be controlled globally or individually using
+[Scheduler](https://github.com/deephacks/jobpipe/blob/master/core/src/main/java/org/deephacks/jobpipe/Scheduler.java).
 
 ```java
-    ScheduledThreadPoolExecutor globalMultiThreaded = new ScheduledThreadPoolExecutor(10);
-    ScheduledThreadPoolExecutor singleThreaded = new ScheduledThreadPoolExecutor(1);
+    Scheduler globalMultiThreaded = new DefaultScheduler(10);
+    Scheduler singleThreaded = new DefaultScheduler(1);
     
     JobSchedule.newSchedule(context)
-      .executor(globalMultiThreaded)
+      .scheduler(globalMultiThreaded)
       .task(Task1.class).add()
-      .task(Task2.class).deps(Task1.class).executor(singleThreaded).add()
+      .task(Task2.class).deps(Task1.class).scheduler(singleThreaded).add()
       .execute().awaitFinish();
 ```
 
@@ -139,8 +141,8 @@ public class JobObserverLog implements JobObserver {
     
     JobSchedule.newSchedule(context)
       .observer(new JobObserverLog())
-      .task(Task1.class).add()
-      .task(Task2.class).deps(Task1.class).add()
+      .task(new Task1()).add()
+      .task(new Task2()).deps(Task1.class).add()
       .execute().awaitFinish();
 ```
 
