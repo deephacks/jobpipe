@@ -13,7 +13,7 @@ between tasks as a sequence of continuous executions in time. These tasks can be
 
 Jobpipe is a minimal library and unopinionated on how users choose to build their applications with regards to logging, configuration, monitoring, dependency injection, persistence, thread execution etc.
 
-[Download](http://search.maven.org/remotecontent?filepath=org/deephacks/jobpipe/jobpipe-cli/0.0.1/jobpipe-cli-0.0.1-capsule-fat.jar) the latest jobpipe release.
+[Download](http://search.maven.org/remotecontent?filepath=org/deephacks/jobpipe/jobpipe-cli/0.0.3/jobpipe-cli-0.0.3-capsule-fat.jar) the latest jobpipe release.
 
 #### Example 1
 
