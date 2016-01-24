@@ -197,7 +197,6 @@ public class JobSchedulerTest {
 
     @Override
     public void execute(TaskContext ctx) {
-      sleep(500);
       throw new RuntimeException("message");
     }
 

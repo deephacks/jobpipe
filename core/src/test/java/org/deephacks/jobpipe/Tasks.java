@@ -8,7 +8,6 @@ public class Tasks {
 
     @Override
     public void execute(TaskContext ctx) {
-      sleep(100);
       output.create();
     }
 
@@ -24,7 +23,6 @@ public class Tasks {
 
     @Override
     public void execute(TaskContext ctx) {
-      sleep(100);
       output.create();
     }
 
