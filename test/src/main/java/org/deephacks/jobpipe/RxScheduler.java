@@ -11,4 +11,9 @@ public class RxScheduler implements Scheduler {
     Schedulers.computation().createWorker()
       .schedule(() -> runnable.run(), delayTime, unit);
   }
+
+  @Override
+  public void shutdown() {
+    Schedulers.shutdown();
+  }
 }
