@@ -150,11 +150,17 @@ public class JobObserverLog implements JobObserver {
 
 The command line jar provides a way for triggering a schedule at a certain time range, like 2016-01, 2013-W12, 2016-10-11 or 2013-12-01T12. Users can also choose to execute only single task through the ```-task``` option. Tasks are provided through user built jar files either in the ```/lib``` directory of the same directory as the command line jar and/or through the system property ```-Djobpipe.cp```. 
 
-The following command run task 'task1' of the Pipeline class implementation that matches the regexp ```HadoopPipeline``` and loads all files in the ```/home/user/hadoop-tasks``` and ```$HADOOP_HOME/share/hadoop/yarn``` directory (non-recursive).
+The following command run task 'task1' of the Pipeline class implementation that matches the regexp ```SparkPipeline``` and loads all files in the ```$SPARK_HOME/lib``` directory onto classpath (non-recursive).
 
 ```bash
-export JOBPIPE_CP=/home/user/hadoop-tasks:$HADOOP_HOME/share/hadoop/yarn
-java -Djobpipe.cp=$JOBPIPE_CP -jar jobpipe-cli.jar HadoopPipeline -range 2016-01 -task task1
+export SPARK_HOME=/usr/local/spark-1.4.1-bin-hadoop2.6
+export HADOOP_HOME=/usr/local/hadoop-2.7.1
+export JOBPIPE_HOME=/usr/local/jobpipe
+export MYPIPE_HOME=/usr/local/my-pipe
+export HADOOP_CONF_DIR=/etc/hadoop/conf
+export JOBPIPE_CP=$SPARK_HOME/lib:$MYPIPE_HOME:$JOBPIPE_HOME/spark/target/jobpipe-spark-0.0.4-SNAPSHOT.jar
+
+java -Djobpipe.cp=$JOBPIPE_CP -jar $JOBPIPE_HOME/jobpipe-cli-0.0.3-capsule-fat.jar SparkPipeline -range 2016-01 -task task1
 ```
 
 #### Example 7 - Apache Spark
