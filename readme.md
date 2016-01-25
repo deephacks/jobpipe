@@ -1,5 +1,5 @@
 # jobpipe
-Java scheduler for pipelines of long-running batch processes, inspired by Spotify [Luigi](https://github.com/spotify/luigi).
+Java workflow scheduler for pipelines of long-running batch processes, inspired by Spotify [Luigi](https://github.com/spotify/luigi).
 
 The purpose of jobpipe is to execute certain tasks at regular time ranges and allow expressing dependencies
 between tasks as a sequence of continuous executions in time. These tasks can be anything, like Hadoop/Spark jobs, log data processing, data indexing or time series downsampling. 
@@ -11,7 +11,7 @@ between tasks as a sequence of continuous executions in time. These tasks can be
 - Failed tasks (without a previously valid output) fail its dependent tasks transitively. 
 - Tasks may execute in parallel if their inputs are satisfied.
 
-Unlike other workflow schedulers, Jobpipe is a minimal library with zero dependencies that tries hard to be unopinionated on how users should build their applications with regards to logging, configuration, monitoring, dependency injection, persistence, security, thread execution etc. Most of these concerns can be implemented by users as they see fit.
+Unlike other workflow schedulers like Azkaban and Oozie, Jobpipe is a minimal library with zero dependencies where everything is expressed in code, no XML. Jobpipe tries hard to be unopinionated on how users should build their applications with regards to logging, configuration, monitoring, dependency injection, persistence, security, thread execution etc. Most of these concerns can be implemented by users as they see fit. 
 
 [Download](http://search.maven.org/remotecontent?filepath=org/deephacks/jobpipe/jobpipe-cli/0.0.3/jobpipe-cli-0.0.3-capsule-fat.jar) the latest jobpipe release.
 
