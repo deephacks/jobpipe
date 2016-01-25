@@ -86,7 +86,7 @@ public class JobSchedulerTest {
     TimeRange range = new TimeRange("2012-10-10T10:00");
     String taskId = "0";
     String[] args = new String[]{"hello"};
-    PipelineContext context = new PipelineContext(range, taskId, args);
+    PipelineContext context = new PipelineContext(range, taskId, true, args);
     JobSchedule schedule = JobSchedule.newSchedule(context)
       .observer(observer)
       .task(task).id("1").timeRange(MINUTE).add()

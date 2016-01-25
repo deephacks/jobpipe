@@ -20,6 +20,7 @@ public class Cli {
       .withRequiredArg().ofType(String.class).describedAs("task");
 
     parser.accepts("h", "Display help");
+    parser.accepts("v", "Print debug statements and exceptions.");
 
     OptionSpec<String> clsOpt = parser.nonOptions("Class regexp to run that implements a Pipeline " +
       "as a META-INF/services/org.deephacks.jobpipe.Pipeline")
@@ -32,6 +33,10 @@ public class Cli {
     if (options.has("h")) {
       parser.printHelpOn(System.out);
       return;
+    }
+    Boolean verbose = false;
+    if (options.has("v")) {
+      verbose = true;
     }
     if (argList != null && argList.size() > 0) {
       cls = argList.get(0);
@@ -58,7 +63,7 @@ public class Cli {
     } else {
       for (Pipeline pipeline : pipelines) {
         if (pattern.matcher(pipeline.getClass().getName()).find()) {
-          PipelineContext context = new PipelineContext(range, taskId, args);
+          PipelineContext context = new PipelineContext(range, taskId, verbose, args);
           System.out.println("Executing " + pipeline.getClass().getName() + " for " + range);
           pipeline.execute(context);
           return;

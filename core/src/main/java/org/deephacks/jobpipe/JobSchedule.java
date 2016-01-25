@@ -7,11 +7,13 @@ import java.util.stream.Collectors;
 public class JobSchedule {
   private final TimeRange timeRange;
   private final Map<String, List<Node>> tasks;
+  private final boolean verbose;
   private final List<Node> schedule = new ArrayList<>();
 
   private JobSchedule(JobScheduleBuilder builder) {
     this.timeRange = builder.timeRange;
     this.tasks = builder.tasks;
+    this.verbose = builder.verbose;
   }
 
   public static JobScheduleBuilder newSchedule(PipelineContext context) {
@@ -123,6 +125,9 @@ public class JobSchedule {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
+        if (verbose) {
+          e.printStackTrace(System.err);
+        }
         throw new RuntimeException(e);
       }
     }
@@ -134,6 +139,9 @@ public class JobSchedule {
       try {
         status.getContext().node.getScheduler().shutdown();
       } catch (Exception e) {
+        if (verbose) {
+          e.printStackTrace(System.err);
+        }
       }
     }
   }
@@ -198,6 +206,7 @@ public class JobSchedule {
     private JobObserver observer;
     private String taskId;
     private String[] args;
+    public boolean verbose;
 
     private JobScheduleBuilder(String timeFormat) {
       this.timeRange = new TimeRange(timeFormat);
@@ -211,6 +220,7 @@ public class JobSchedule {
       this.timeRange = context.range;
       this.args = context.args;
       this.taskId = context.taskId;
+      this.verbose = context.verbose;
     }
 
 
@@ -357,7 +367,7 @@ public class JobSchedule {
         Scheduler scheduler = Optional.ofNullable(this.scheduler)
           .orElseGet(() -> jobScheduleBuilder.defaultScheduler = Optional.ofNullable(jobScheduleBuilder.defaultScheduler)
             .orElseGet(() -> new DefaultScheduler()));
-        Node node = new Node(id, task, range, scheduler, jobScheduleBuilder.args, jobScheduleBuilder.observer);
+        Node node = new Node(id, task, range, scheduler, jobScheduleBuilder.args, jobScheduleBuilder.observer, jobScheduleBuilder.verbose);
         for (String dep : deps) {
           List<Node> nodes = jobScheduleBuilder.tasks.get(dep);
           if (nodes == null) {

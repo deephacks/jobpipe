@@ -8,10 +8,12 @@ public class TaskStatus {
   private TaskStatusCode code;
   private long lastUpdate = 0;
   private final JobObserver observer;
+  private final boolean verbose;
 
-  public TaskStatus(TaskContext context, JobObserver observer) {
+  public TaskStatus(TaskContext context, JobObserver observer, boolean verbose) {
     this.context = context;
     this.observer = observer;
+    this.verbose = verbose;
     setCode(TaskStatusCode.NEW);
     setLastUpdate();
   }
@@ -46,12 +48,20 @@ public class TaskStatus {
   boolean setCode(TaskStatusCode code) {
     if (this.code != code) {
       this.code = code;
+      if (verbose) {
+        System.out.println(context + " -> " + this.code);
+        if (code == TaskStatusCode.ERROR_EXECUTE) {
+          ((Throwable) this.failReason).printStackTrace(System.err);
+        }
+      }
     }
     setLastUpdate();
     try {
       return observer != null ? observer.notify(this) : true;
     } catch (Throwable e) {
-      e.printStackTrace(System.err);
+      if (verbose) {
+        e.printStackTrace(System.err);
+      }
       return false;
     }
   }

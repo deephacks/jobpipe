@@ -17,21 +17,21 @@ class Node {
   private final String[] args;
   private final AtomicReference<TaskStatus> status = new AtomicReference<>();
 
-  Node(String id, Task task, TimeRange range, Scheduler scheduler, String[] args, JobObserver observer) {
+  Node(String id, Task task, TimeRange range, Scheduler scheduler, String[] args, JobObserver observer, boolean verbose) {
     this.id = id;
     this.range = range;
     this.args = args;
     this.scheduler = scheduler;
     this.context = new TaskContext(this);
     this.task = task;
-    this.status.set(new TaskStatus(context, observer));
+    this.status.set(new TaskStatus(context, observer, verbose));
   }
 
   void execute() {
     task.execute(context);
   }
 
-  public TaskContext getContext() {
+  TaskContext getContext() {
     return context;
   }
 
@@ -47,11 +47,11 @@ class Node {
     return task;
   }
 
-  public TaskStatus getStatus() {
+  TaskStatus getStatus() {
     return status.get();
   }
 
-  public String[] getArgs() {
+  String[] getArgs() {
     return args;
   }
 

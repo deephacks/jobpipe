@@ -1,6 +1,5 @@
 package org.deephacks.jobpipe.spark;
 
-import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.deephacks.jobpipe.*;
 
