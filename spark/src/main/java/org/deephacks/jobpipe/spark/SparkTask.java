@@ -13,32 +13,34 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SparkTask implements Task {
-  protected SparkTaskBuilder builder;
-  protected String appName;
+  protected Builder config;
 
-  private SparkTask(SparkTaskBuilder builder) {
-    this.builder = builder;
-    this.appName = builder.getAppName();
+  private SparkTask(Builder config) {
+    this.config = config.conclude();
   }
 
-  public static SparkTaskBuilder newBuilder(Class<?> mainClass) {
-    return new SparkTaskBuilder(mainClass);
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
+  public static Builder newBuilder(Builder builder) {
+    return new Builder(builder);
   }
 
   @Override
   public void execute(TaskContext ctx) {
     Process process = null;
     try {
-      SparkLauncher launcher = createLauncher();
-      List<String> depOutput = ctx.getDependecyOutput().stream()
-        .map(o -> o.get().toString())
-        .collect(Collectors.toList());
-
       DateTime date = ctx.getTimeRange().from();
       String input = getInputPath(date);
       String output = getOutputPath(date);
 
-      String[] args = new SparkArgs(builder.getAppName(), builder.master, input, output, depOutput)
+      SparkLauncher launcher = config.createLauncher(date);
+      List<String> depOutput = ctx.getDependecyOutput().stream()
+        .map(o -> o.get().toString())
+        .collect(Collectors.toList());
+
+      String[] args = new SparkArgs(config.appName, config.master, input, output, depOutput)
         .toArgs(ctx.getArgs());
       launcher.addAppArgs(args);
       process = launcher.launch();
@@ -57,61 +59,27 @@ public class SparkTask implements Task {
   @Override
   public TaskOutput getOutput(TaskContext context) {
     String path = getOutputPath(context.getTimeRange().from());
-    return builder.output.apply(path);
+    return config.output.apply(path);
   }
 
   private String getOutputPath(DateTime time) {
     return PathSubstitutor.newBuilder(time)
-      .pattern(builder.outputPathPattern)
-      .basePath(builder.basePath)
-      .sub("appName", appName)
+      .pattern(config.outputPathPattern)
+      .basePath(config.basePath)
+      .sub("appName", config.appName)
       .replace();
   }
 
   private String getInputPath(DateTime time) {
     return PathSubstitutor.newBuilder(time)
-      .pattern(builder.inputPathPattern)
-      .basePath(builder.basePath)
-      .sub("appName", appName)
+      .pattern(config.inputPathPattern)
+      .basePath(config.basePath)
+      .sub("appName", config.appName)
       .replace();
   }
 
-  SparkLauncher createLauncher() {
-    SparkLauncher launcher = new SparkLauncher();
-    launcher.setMainClass(builder.mainClass.getName());
-    if (builder.verbose != null) {
-      launcher.setVerbose(builder.verbose);
-    }
-    launcher.setAppName(builder.getAppName());
-    if (builder.appResource != null) {
-      launcher.setAppResource(builder.appResource);
-    } else {
-      launcher.setAppResource(getJarAbsolutePath(builder.mainClass));
-    }
-    if (builder.deployMode != null) {
-      launcher.setDeployMode(builder.deployMode);
-    }
-    if (builder.master != null) {
-      launcher.setMaster(builder.master);
-    }
-    if (builder.propertiesFile != null) {
-      launcher.setPropertiesFile(builder.propertiesFile);
-    }
-    if (builder.sparkHome != null) {
-      launcher.setSparkHome(builder.sparkHome);
-    }
-    launcher.addJar(getJarAbsolutePath(Task.class));
-    launcher.addJar(getJarAbsolutePath(SparkTask.class));
-    builder.appArgs.forEach(arg -> launcher.addAppArgs(arg));
-    // builder.sparkArgs.forEach(arg -> launcher.addSparkArg(arg));
-    builder.files.forEach(file -> launcher.addFile(file));
-    builder.pyFiles.forEach(file -> launcher.addPyFile(file));
-    builder.jars.stream().forEach(jar -> launcher.addJar(jar));
-    builder.conf.forEach((k, v) -> launcher.setConf(k, v));
-    return launcher;
-  }
 
-  public static class SparkTaskBuilder {
+  public static class Builder {
     Function<String, TaskOutput> output;
     String basePath;
     String outputPathPattern = "${basePath}/${appName}/${year}-${month}-${day}T${hour}";
@@ -123,7 +91,7 @@ public class SparkTask implements Task {
     Class<?> mainClass;
     String master;
     String sparkHome;
-    protected String propertiesFile;
+    String propertiesFile;
     final List<String> appArgs;
     final List<String> sparkArgs;
     final List<String> jars;
@@ -131,106 +99,122 @@ public class SparkTask implements Task {
     final List<String> pyFiles;
     final Map<String, String> conf;
 
-    private SparkTaskBuilder(Class<?> mainClass) {
+    public Builder() {
       this.appArgs = new ArrayList<>();
       this.sparkArgs = new ArrayList<>();
       this.conf = new HashMap<>();
       this.files = new ArrayList<>();
       this.jars = new ArrayList<>();
       this.pyFiles = new ArrayList<>();
-      this.mainClass = mainClass;
     }
 
-    public static SparkTaskBuilder newBuilder(Class<?> mainClass) {
-      Objects.nonNull(mainClass);
-      return new SparkTaskBuilder(mainClass);
+    public Builder(Builder builder) {
+      this.appArgs = builder.appArgs;
+      this.sparkArgs = builder.sparkArgs;
+      this.conf = builder.conf;
+      this.files = builder.files;
+      this.jars = builder.jars;
+      this.pyFiles = builder.pyFiles;
+      this.sparkHome = builder.sparkHome;
+      this.master = builder.master;
+      this.output = builder.output;
+      this.basePath = builder.basePath;
+      this.outputPathPattern = builder.outputPathPattern;
+      this.inputPathPattern = builder.inputPathPattern;
+      this.verbose = builder.verbose;
+      this.appName = builder.appName;
+      this.appResource = builder.appResource;
+      this.deployMode = builder.deployMode;
+      this.mainClass = builder.mainClass;
     }
 
-    public SparkTaskBuilder setOutputPattern(String outputPathPattern) {
+    public Builder mainClass(Class<?> cls) {
+      this.mainClass = cls;
+      return this;
+    }
+
+    public Builder appResource(String appResource) {
+      this.appResource = appResource;
+      return this;
+    }
+
+    public Builder outputPattern(String outputPathPattern) {
       this.outputPathPattern = outputPathPattern;
       return this;
     }
 
-    public SparkTaskBuilder setInputPattern(String inputPathPattern) {
+    public Builder inputPattern(String inputPathPattern) {
       this.inputPathPattern = inputPathPattern;
       return this;
     }
 
-    public SparkTaskBuilder setBasePath(String basePath) {
+    public Builder basePath(String basePath) {
       this.basePath = basePath;
       return this;
     }
 
-    public SparkTaskBuilder setConfig(String name, String value) {
+    public Builder putConfig(String name, String value) {
       conf.put(name, value);
       return this;
     }
 
-    public SparkTaskBuilder addAppArgs(String... args) {
+    public Builder addAppArgs(String... args) {
       this.appArgs.addAll(Arrays.asList(args));
       return this;
     }
 
-    public SparkTaskBuilder setPropertiesFile(String path) {
+    public Builder propertiesFile(String path) {
       propertiesFile = path;
       return this;
     }
 
-    public SparkTaskBuilder setDeployMode(String mode) {
+    public Builder deployMode(String mode) {
       this.deployMode = mode;
       return this;
     }
 
-    public SparkTaskBuilder addSparkArg(String value) {
+    public Builder addSparkArg(String value) {
       this.sparkArgs.add(value);
       return this;
     }
 
-    public SparkTaskBuilder addFile(String file) {
+    public Builder addFile(String file) {
       files.add(file);
       return this;
     }
 
-    public SparkTaskBuilder setMaster(String master) {
+    public Builder master(String master) {
       this.master = master;
       return this;
     }
 
-    public SparkTaskBuilder addPyFile(String file) {
+    public Builder addPyFile(String file) {
       pyFiles.add(file);
       return this;
     }
 
-    public SparkTaskBuilder setSparkHome(String sparkHome) {
+    public Builder sparkHome(String sparkHome) {
       this.sparkHome = sparkHome;
       return this;
     }
 
-    public SparkTaskBuilder addJar(String jar) {
+    public Builder addJar(String jar) {
       this.jars.add(jar);
       return this;
     }
 
-    public SparkTaskBuilder setVerbose(boolean verbose) {
+    public Builder verbose(boolean verbose) {
       this.verbose = verbose;
       return this;
     }
 
-    public SparkTaskBuilder setAppName(String appName) {
+    public Builder appName(String appName) {
       this.appName = appName;
       return this;
     }
 
-    public String getAppName() {
-      return appName == null ? mainClass.getSimpleName() : appName;
-    }
-
-    public String getMaster() {
-      return master == null ? "local" : master;
-    }
-
-    public SparkTaskBuilder setAppResource(String resource) {
-      this.appResource = resource;
+    public Builder output(Function<String, TaskOutput> output) {
+      this.output = output;
       return this;
     }
 
@@ -238,8 +222,47 @@ public class SparkTask implements Task {
       return new SparkTask(this);
     }
 
-    public SparkTaskBuilder setOutput(Function<String, TaskOutput> output) {
-      this.output = output;
+    SparkLauncher createLauncher(DateTime date) {
+      SparkLauncher launcher = new SparkLauncher();
+      launcher.setMainClass(mainClass.getName());
+      if (verbose != null) {
+        launcher.setVerbose(verbose);
+      }
+      launcher.setAppName(appName + "-" + date.toString("yyyy-MM-dd'T'HH:mm"));
+      if (appResource != null) {
+        launcher.setAppResource(appResource);
+      } else {
+        launcher.setAppResource(getJarAbsolutePath(mainClass));
+      }
+      if (deployMode != null) {
+        launcher.setDeployMode(deployMode);
+      }
+      launcher.setMaster(master);
+      if (propertiesFile != null) {
+        launcher.setPropertiesFile(propertiesFile);
+      }
+      if (sparkHome != null) {
+        launcher.setSparkHome(sparkHome);
+      }
+      launcher.addJar(getJarAbsolutePath(Task.class));
+      launcher.addJar(getJarAbsolutePath(SparkTask.class));
+      appArgs.forEach(arg -> launcher.addAppArgs(arg));
+      // builder.sparkArgs.forEach(arg -> launcher.addSparkArg(arg));
+      files.forEach(file -> launcher.addFile(file));
+      pyFiles.forEach(file -> launcher.addPyFile(file));
+      jars.stream().forEach(jar -> launcher.addJar(jar));
+      conf.forEach((k, v) -> launcher.setConf(k, v));
+      return launcher;
+    }
+
+    Builder conclude() {
+      if (mainClass == null) {
+        throw new NullPointerException("mainClass cannot be null");
+      }
+      appName = appName == null ? mainClass.getSimpleName() : appName;
+      if (master == null) {
+        master = "local";
+      }
       return this;
     }
   }

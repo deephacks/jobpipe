@@ -18,11 +18,12 @@ import static org.deephacks.jobpipe.TimeRangeType.HOUR;
 public class SparkPipeline implements Pipeline {
 
   public static void main(String[] args) {
-    SparkTask task = SparkTask.newBuilder(SparkTask1.class)
-      .setBasePath("/tmp")
-      .setMaster("local")
-      .setInputPattern("${basePath}/files")
-      .setOutput(LocalOutput::new)
+    SparkTask task = SparkTask.newBuilder()
+      .mainClass(SparkTask1.class)
+      .basePath("/tmp")
+      .master("local")
+      .inputPattern("${basePath}/files")
+      .output(LocalOutput::new)
       .build();
     JobSchedule.newSchedule("2015-10-11T11")
       .task(task).timeRange(HOUR).add()
@@ -32,10 +33,10 @@ public class SparkPipeline implements Pipeline {
 
   @Override
   public void execute(PipelineContext context) {
-    SparkTask task = SparkTask.newBuilder(SparkTask1.class)
-      .setInputPattern("/tmp/files")
+    SparkTask task = SparkTask.newBuilder()
+      .mainClass(SparkTask1.class)
+      .inputPattern("/tmp/files")
       .build();
-    SparkTask.newBuilder(SparkTask1.class).build();
     JobSchedule.newSchedule(context)
       .task(task).timeRange(HOUR).add()
       .execute().awaitFinish().shutdownAfter();
