@@ -214,7 +214,6 @@ public class JobSchedulerTest {
         .task(new FailingTask()).timeRange(TimeRangeType.HOUR).add()
         .task(new Task1()).timeRange(TimeRangeType.DAY).deps(FailingTask.class).add()
         .execute().awaitDone();
-      System.out.println(schedule.getScheduleId());
       List<TaskStatus> tasks = schedule.getScheduledTasks();
       assertThat(tasks.size(), is(24 + 1));
 
@@ -231,7 +230,6 @@ public class JobSchedulerTest {
         .collect(Collectors.toList());
       assertThat(deps.size(), is(1));
       assertThat(deps.get(0).getContext().getId(), is("Task1"));
-      List<TaskStatus> failedTasks = schedule.getFailedTasks();
     }
   }
 

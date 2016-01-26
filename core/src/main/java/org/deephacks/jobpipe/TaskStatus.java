@@ -52,20 +52,16 @@ public class TaskStatus {
     }
     if (this.code != code) {
       this.code = code;
-      if (verbose) {
-        System.out.println(context + " -> " + this.code);
-        if (code == TaskStatusCode.ERROR_EXECUTE) {
-          ((Throwable) this.failReason).printStackTrace(System.err);
-        }
+      Debug.debug(context + " -> " + this.code, verbose);
+      if (code == TaskStatusCode.ERROR_EXECUTE) {
+        Debug.debug((Throwable) this.failReason, verbose);
       }
     }
     setLastUpdate();
     try {
       return observer != null ? observer.notify(this) : true;
     } catch (Throwable e) {
-      if (verbose) {
-        e.printStackTrace(System.err);
-      }
+      Debug.debug(e, verbose);
       return false;
     }
   }

@@ -132,9 +132,7 @@ public class JobSchedule {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
-        if (verbose) {
-          e.printStackTrace(System.err);
-        }
+        Debug.debug(e, verbose);
         throw new RuntimeException(e);
       }
     }
@@ -146,9 +144,7 @@ public class JobSchedule {
       try {
         status.getContext().node.getScheduler().shutdown();
       } catch (Exception e) {
-        if (verbose) {
-          e.printStackTrace(System.err);
-        }
+        Debug.debug(e, verbose);
       }
     }
   }
