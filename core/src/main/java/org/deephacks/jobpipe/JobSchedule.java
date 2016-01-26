@@ -194,7 +194,7 @@ public class JobSchedule {
               node.getStatus().failedDep(dep.getContext());
               return;
             } else if (!node.dependenciesDone() && !dep.hasOutput()) {
-              // wait for output
+              // wait and retry for output (this is not a failed RETRY)
               Thread.sleep(1000);
               continue;
             } else if (node.dependenciesDone() && !dep.hasOutput()) {
@@ -205,6 +205,7 @@ public class JobSchedule {
           }
 
           if (!node.hasOutput()) {
+            // don't set status to RUNNING for retries
             if (node.getStatus().code() == TaskStatus.TaskStatusCode.RETRY) {
               node.execute();
               node.getStatus().finished();
@@ -226,14 +227,6 @@ public class JobSchedule {
             node.getStatus().failed(e);
           }
         }
-      }
-    }
-
-    void retry(int sec) {
-      if (node.getStatus().scheduled()) {
-        node.getScheduler().schedule(new ScheduleTask(node), sec, TimeUnit.SECONDS);
-      } else {
-        node.getStatus().abort();
       }
     }
 
