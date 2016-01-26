@@ -4,7 +4,8 @@ import java.util.Optional;
 
 public class TaskStatus {
   private TaskContext context;
-  private Object failReason;
+  private Throwable failReason;
+  private TaskContext failedDep;
   private TaskStatusCode code;
   private long lastUpdate = 0;
   private final JobObserver observer;
@@ -16,7 +17,7 @@ public class TaskStatus {
     this.verbose = verbose;
   }
 
-  public Optional<Object> getFailReason() {
+  public Optional<Throwable> getFailReason() {
     return Optional.ofNullable(failReason);
   }
 
@@ -76,12 +77,12 @@ public class TaskStatus {
   }
 
   void failedDep(TaskContext failedDep) {
-    this.failReason = failedDep;
+    this.failedDep = failedDep;
     setCode(TaskStatusCode.ERROR_DEPENDENCY);
   }
 
   void failedDepNoInput(TaskContext failedDep) {
-    this.failReason = failedDep;
+    this.failedDep = failedDep;
     setCode(TaskStatusCode.ERROR_NO_INPUT);
   }
 

@@ -17,6 +17,9 @@ public class JobSchedule {
     this.tasks = builder.tasks;
     this.verbose = builder.verbose;
     this.scheduleId = builder.scheduleId;
+    if (builder.pipelineContext != null) {
+      builder.pipelineContext.setSchedule(this);
+    }
   }
 
   public static JobScheduleBuilder newSchedule(PipelineContext context) {
@@ -232,6 +235,7 @@ public class JobSchedule {
   }
 
   public static class JobScheduleBuilder {
+    private PipelineContext pipelineContext;
     private TimeRange timeRange;
     private Map<String, List<Node>> tasks = new HashMap<>();
     private Scheduler defaultScheduler;
@@ -250,6 +254,7 @@ public class JobSchedule {
     }
 
     public JobScheduleBuilder(PipelineContext context) {
+      this.pipelineContext = context;
       this.timeRange = context.range;
       this.args = context.args;
       this.targetTaskId = context.targetTaskId;

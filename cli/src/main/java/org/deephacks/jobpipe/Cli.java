@@ -3,6 +3,7 @@ package org.deephacks.jobpipe;
 import joptsimple.*;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class Cli {
@@ -66,6 +67,13 @@ public class Cli {
           PipelineContext context = new PipelineContext(range, taskId, verbose, args);
           System.out.println("Executing " + pipeline.getClass().getName() + " for " + range);
           pipeline.execute(context);
+          if (context.schedule != null) {
+            context.schedule.awaitDone();
+            System.out.println("\nFailure executing pipeline:");
+            for (TaskStatus fail : context.schedule.getFailedTasks()) {
+              System.out.println(fail.code() + " " + fail.getContext());
+            }
+          }
           return;
         }
       }
