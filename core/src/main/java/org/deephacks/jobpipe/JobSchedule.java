@@ -219,6 +219,8 @@ public class JobSchedule {
     void retry(int sec) {
       if (node.getStatus().scheduled()) {
         node.getScheduler().schedule(new ScheduleTask(node), sec, TimeUnit.SECONDS);
+      } else {
+        node.getStatus().abort();
       }
     }
 

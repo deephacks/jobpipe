@@ -11,8 +11,8 @@ public interface JobObserver {
    * {@link org.deephacks.jobpipe.TaskStatus.TaskStatusCode#SCHEDULED},
    * which would reject scheduling of the task.
    *
-   * Do not throw runtime exceptions, it will reject the task transition and barf
-   * the stacktrace on System.err.
+   * Runtime exceptions will set the status to
+   * {@link org.deephacks.jobpipe.TaskStatus.TaskStatusCode#ERROR_ABORTED}.
    *
    * @param status next status.
    * @return false to reject the status change and set status to
