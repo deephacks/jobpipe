@@ -7,8 +7,10 @@ between tasks as a sequence of continuous executions in time. These tasks can be
 - A schedule is a time dependent directed acyclic graph of task executions. 
 - Tasks produce output which is provided as input to dependent tasks. 
 - Tasks are stalled until their dependent tasks output are produced (if any). 
-- Task output enable resumability of pipelines that crash halfway.
+- Unrelated tasks in the graph succeed or fail independently.
 - Failed tasks (without a previously valid output) fail its dependent tasks transitively. 
+- Task output enable resumability of pipelines that crash halfway.
+- There is no rollback mechanism. 
 - Tasks may execute in parallel if their inputs are satisfied.
 
 Unlike other workflow schedulers like Azkaban and Oozie, Jobpipe is a minimal library with zero dependencies where everything is expressed in code, no XML. Jobpipe tries hard to be unopinionated on how users should build their applications with regards to logging, configuration, monitoring, dependency injection, persistence, security, thread execution etc. Most of these concerns can be implemented by users as they see fit. 
