@@ -3,6 +3,7 @@ package org.deephacks.jobpipe;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class JobSchedule {
@@ -184,35 +185,47 @@ public class JobSchedule {
 
     @Override
     public void run() {
-      try {
-        for (Node dep : node.getDependencies()) {
-          if (dep.getStatus().hasFailed()) {
-            // fail early
-            node.getStatus().failedDep(dep.getContext());
-            return;
-          } else if (!node.dependenciesDone() && !dep.hasOutput()) {
-            // wait for output
-            retry(1);
-            return;
-          } else if (node.dependenciesDone() && !dep.hasOutput()) {
-            // dependencies failed to produce output
-            node.getStatus().failedDepNoInput(dep.getContext());
-            return;
-          }
-        }
 
-        if (!node.hasOutput()) {
-          if (node.getStatus().running()) {
-            node.execute();
-            node.getStatus().finished();
-          } else {
-            node.getStatus().abort();
+      while (!node.getStatus().isDone()) {
+        try {
+          for (Node dep : node.getDependencies()) {
+            if (dep.getStatus().hasFailed()) {
+              // fail early
+              node.getStatus().failedDep(dep.getContext());
+              return;
+            } else if (!node.dependenciesDone() && !dep.hasOutput()) {
+              // wait for output
+              Thread.sleep(1000);
+              continue;
+            } else if (node.dependenciesDone() && !dep.hasOutput()) {
+              // dependencies failed to produce output
+              node.getStatus().failedDepNoInput(dep.getContext());
+              return;
+            }
           }
-        } else {
-          node.getStatus().skipped();
+
+          if (!node.hasOutput()) {
+            if (node.getStatus().code() == TaskStatus.TaskStatusCode.RETRY) {
+              node.execute();
+              node.getStatus().finished();
+            } else if (node.getStatus().running()) {
+              node.execute();
+              node.getStatus().finished();
+            } else {
+              node.getStatus().abort();
+            }
+          } else {
+            node.getStatus().skipped();
+          }
+        } catch (Throwable e) {
+          if (node.getRetries() > node.getStatus().getRetries()) {
+            if (!node.getStatus().retry()) {
+              node.getStatus().failed(e);
+            }
+          } else {
+            node.getStatus().failed(e);
+          }
         }
-      } catch (Throwable e) {
-        node.getStatus().failed(e);
       }
     }
 
@@ -325,6 +338,7 @@ public class JobSchedule {
     private TimeRangeType timeRangeType;
     private Scheduler scheduler;
     private JobScheduleBuilder jobScheduleBuilder;
+    private int retries = -1;
 
     private TaskBuilder(Task task, JobScheduleBuilder jobScheduleBuilder) {
       this.task = task;
@@ -337,6 +351,11 @@ public class JobSchedule {
      */
     public TaskBuilder id(String id) {
       this.id = id;
+      return this;
+    }
+
+    public TaskBuilder retries(int retries) {
+      this.retries = retries;
       return this;
     }
 
@@ -416,7 +435,7 @@ public class JobSchedule {
             .orElseGet(() -> new DefaultScheduler()));
         Node node = new Node(id, jobScheduleBuilder.scheduleId, task, range,
           scheduler, jobScheduleBuilder.args, jobScheduleBuilder.observer,
-          jobScheduleBuilder.verbose);
+          jobScheduleBuilder.verbose, retries);
         for (String dep : deps) {
           List<Node> nodes = jobScheduleBuilder.tasks.get(dep);
           if (nodes == null) {

@@ -1,6 +1,7 @@
 package org.deephacks.jobpipe;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskStatus {
   private TaskContext context;
@@ -10,6 +11,7 @@ public class TaskStatus {
   private long lastUpdate = 0;
   private final JobObserver observer;
   private final boolean verbose;
+  private AtomicInteger retries = new AtomicInteger(0);
 
   TaskStatus(TaskContext context, JobObserver observer, boolean verbose) {
     this.context = context;
@@ -21,6 +23,14 @@ public class TaskStatus {
     return Optional.ofNullable(failReason);
   }
 
+  public Optional<TaskContext> getFailedDep() {
+    return Optional.ofNullable(failedDep);
+  }
+
+  public int getRetries() {
+    return retries.get();
+  }
+
   public TaskStatusCode code() {
     return code;
   }
@@ -28,7 +38,8 @@ public class TaskStatus {
   public boolean isDone() {
     return code != TaskStatusCode.NEW
       && code != TaskStatusCode.RUNNING
-      && code != TaskStatusCode.SCHEDULED;
+      && code != TaskStatusCode.SCHEDULED
+      && code != TaskStatusCode.RETRY;
   }
 
   public boolean hasFailed() {
@@ -48,14 +59,17 @@ public class TaskStatus {
   }
 
   boolean setCode(TaskStatusCode code) {
-    if (hasFailed()) {
+    if (code == TaskStatusCode.RETRY) {
+      this.code = code;
+      Debug.debug(context + " -> " + this.code +
+        " " + retries.incrementAndGet(), verbose);
+    } else if (hasFailed()) {
       return false;
-    }
-    if (this.code != code) {
+    } else if (this.code != code) {
       this.code = code;
       Debug.debug(context + " -> " + this.code, verbose);
       if (code == TaskStatusCode.ERROR_EXECUTE) {
-        Debug.debug((Throwable) this.failReason, verbose);
+        Debug.debug(this.failReason, verbose);
       }
     }
     setLastUpdate();
@@ -74,6 +88,10 @@ public class TaskStatus {
   void failed(Throwable e) {
     this.failReason = e;
     setCode(TaskStatusCode.ERROR_EXECUTE);
+  }
+
+  boolean retry() {
+    return setCode(TaskStatusCode.RETRY);
   }
 
   void failedDep(TaskContext failedDep) {
@@ -121,6 +139,11 @@ public class TaskStatus {
     SKIPPED,
     /** the task is running {@link org.deephacks.jobpipe.Task#execute(TaskContext)} */
     RUNNING,
+    /**
+     * the task is executing {@link org.deephacks.jobpipe.Task#execute(TaskContext)}
+     * again from a previous ERROR_EXECUTE attempt
+     */
+    RETRY,
     /** input to this task did not exist */
     ERROR_NO_INPUT,
     /** {@link org.deephacks.jobpipe.Task#execute(TaskContext)} threw a runtime exception */

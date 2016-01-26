@@ -116,8 +116,8 @@ public class JobSchedulerTest {
   public void testSameTaskDifferentTimeRange() {
     Task1 task = new Task1();
     JobSchedule schedule = JobSchedule.newSchedule("2011-10-17T15:16")
-      .task(task).id("1-sec").timeRange(SECOND).add()
-      .task(task).id("1-min").timeRange(MINUTE).depIds("1-sec").add()
+      .task(task).id("1-sec").retries(10).timeRange(SECOND).add()
+      .task(task).id("1-min").retries(10).timeRange(MINUTE).depIds("1-sec").add()
       .execute();
     List<TaskStatus> tasks = schedule.getScheduledTasks();
     assertThat(tasks.size(), is(60 + 1));
@@ -164,8 +164,8 @@ public class JobSchedulerTest {
     Scheduler scheduler = new DefaultScheduler(1);
     JobSchedule.newSchedule("2011-01-17T15:16")
       .observer(observer)
-      .task(new Task1()).timeRange(SECOND).add()
-      .task(new Task2()).deps(Task1.class).scheduler(scheduler).add()
+      .task(new Task1()).retries(10).timeRange(SECOND).add()
+      .task(new Task2()).retries(10).deps(Task1.class).scheduler(scheduler).add()
       .execute().awaitDone();
   }
 
@@ -186,7 +186,7 @@ public class JobSchedulerTest {
   @Test
   public void testOutputFromDependency() {
     JobSchedule.newSchedule("2013-01-17T15:16")
-      .task(new Task1()).timeRange(SECOND).add()
+      .task(new Task1()).retries(10).timeRange(SECOND).add()
       .task(new CheckOutputTask()).timeRange(TimeRangeType.MINUTE).deps(Task1.class).add()
       .execute().awaitDone();
   }
@@ -205,6 +205,41 @@ public class JobSchedulerTest {
       .forEach(c -> assertThat(c, is(TaskStatusCode.ERROR_ABORTED)));
   }
 
+  @Test
+  public void testRetryFailingTask() {
+    FailingTask failingTask = new FailingTask();
+    JobSchedule schedule = JobSchedule.newSchedule("1913-12-18T15:16")
+      .task(failingTask).retries(3).timeRange(MINUTE).add()
+      .execute().awaitDone();
+    List<TaskStatus> failedTasks = schedule.getFailedTasks();
+    assertThat(failedTasks.size(), is(1));
+    failedTasks.stream().forEach(c -> {
+      assertThat(c.code(), is(TaskStatusCode.ERROR_EXECUTE));
+      assertThat(c.getRetries(), is(3));
+    });
+  }
+
+  @Test
+  public void testRetryFailingTaskWithDep() {
+    FailingTask failingTask = new FailingTask();
+    JobSchedule schedule = JobSchedule.newSchedule("2013-12-18T15:16")
+      .task(failingTask).retries(3).timeRange(SECOND).add()
+      .task(new Task2()).timeRange(TimeRangeType.MINUTE).deps(FailingTask.class).add()
+      .execute().awaitDone();
+
+    List<TaskStatus> failedTasks = schedule.getScheduledTasksMap().get("FailingTask");
+
+    assertThat(failedTasks.size(), is(60));
+    failedTasks.stream().forEach(c -> {
+      assertThat(c.code(), is(TaskStatusCode.ERROR_EXECUTE));
+      assertThat(c.getRetries(), is(3));
+    });
+
+    schedule.getScheduledTasksMap().get("Task2")
+      .stream().forEach(c -> {
+      assertThat(c.code(), is(TaskStatusCode.ERROR_DEPENDENCY));
+    });
+  }
 
   @Test(timeout = 15_000)
   public void testFailedTaskAbortsExecution() {
@@ -234,7 +269,6 @@ public class JobSchedulerTest {
   }
 
   public static class FailingTask implements Task {
-
     @Override
     public void execute(TaskContext ctx) {
       throw new RuntimeException("message");

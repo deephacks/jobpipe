@@ -15,8 +15,10 @@ class Node {
   private final Scheduler scheduler;
   private final String[] args;
   private final AtomicReference<TaskStatus> status = new AtomicReference<>();
+  private final int retries;
 
-  Node(String id, int scheduleId, Task task, TimeRange range, Scheduler scheduler, String[] args, JobObserver observer, boolean verbose) {
+  Node(String id, int scheduleId, Task task, TimeRange range, Scheduler scheduler,
+       String[] args, JobObserver observer, boolean verbose, int retries) {
     this.id = id;
     this.scheduleId = scheduleId;
     this.range = range;
@@ -24,6 +26,7 @@ class Node {
     this.scheduler = scheduler;
     this.context = new TaskContext(this);
     this.task = task;
+    this.retries = retries;
     TaskStatus status = new TaskStatus(context, observer, verbose);
     if (!status.newTask()) {
       status.abort();
@@ -33,6 +36,10 @@ class Node {
 
   void execute() {
     task.execute(context);
+  }
+
+  int getRetries() {
+    return retries;
   }
 
   TaskContext getContext() {
