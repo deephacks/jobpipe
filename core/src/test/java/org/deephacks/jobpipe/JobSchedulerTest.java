@@ -49,7 +49,7 @@ public class JobSchedulerTest {
     assertThat(taskIds.size(), is(13));
     assertTrue(taskIds.containsAll(Arrays.asList(
       "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")));
-    schedule.awaitFinish();
+    schedule.awaitDone();
   }
 
   @Test
@@ -77,7 +77,7 @@ public class JobSchedulerTest {
     assertThat(taskIds.size(), is(6));
     assertTrue(taskIds.containsAll(Arrays.asList(
       "4", "6", "9", "10", "11", "12")));
-    schedule.awaitFinish();
+    schedule.awaitDone();
   }
 
   @Test
@@ -108,7 +108,7 @@ public class JobSchedulerTest {
     assertThat(taskIds.size(), is(9));
     assertTrue(taskIds.containsAll(Arrays.asList(
       "4", "6", "9", "10", "11", "12", "0", "1")));
-    schedule.awaitFinish();
+    schedule.awaitDone();
   }
 
   /**
@@ -123,7 +123,7 @@ public class JobSchedulerTest {
       .execute();
     List<TaskStatus> tasks = schedule.getScheduledTasks();
     assertThat(tasks.size(), is(60 + 1));
-    schedule.awaitFinish();
+    schedule.awaitDone();
   }
 
   @Test
@@ -151,7 +151,7 @@ public class JobSchedulerTest {
     JobSchedule schedule = JobSchedule.newSchedule("1995-01-17")
       .task(new MissingOutputTask()).id("missing").timeRange(TimeRangeType.MINUTE).add()
       .task(new Task1()).id("task1").timeRange(TimeRangeType.HOUR).depIds("missing").add()
-      .execute().awaitFinish();
+      .execute().awaitDone();
     Map<String, List<TaskStatus>> tasks = schedule.getScheduledTasksMap();
     List<TaskStatus> missing = tasks.get("missing");
     assertThat(missing.size(), is(1440));
@@ -168,7 +168,21 @@ public class JobSchedulerTest {
       .observer(observer)
       .task(new Task1()).timeRange(SECOND).add()
       .task(new Task2()).deps(Task1.class).scheduler(scheduler).add()
-      .execute().awaitFinish();
+      .execute().awaitDone();
+  }
+
+  @Test
+  public void testScheduleId() {
+    JobSchedule schedule = JobSchedule.newSchedule("2011-01-17T15:16")
+      .task(new Task1()).timeRange(SECOND).add()
+      .task(new Task2()).deps(Task1.class).add()
+      .execute()
+      .awaitDone();
+
+    int scheduleId = schedule.getScheduleId();
+    schedule.getScheduledTasks().stream()
+      .map(t -> t.getContext().getScheduleId())
+      .forEach(id -> assertThat(id, is(scheduleId)));
   }
 
   @Test
@@ -176,7 +190,7 @@ public class JobSchedulerTest {
     JobSchedule.newSchedule("2013-01-17T15:16")
       .task(new Task1()).timeRange(SECOND).add()
       .task(new CheckOutputTask()).timeRange(TimeRangeType.MINUTE).deps(Task1.class).add()
-      .execute().awaitFinish();
+      .execute().awaitDone();
   }
 
 
@@ -187,13 +201,13 @@ public class JobSchedulerTest {
         .observer(observer)
         .task(new FailingTask()).timeRange(TimeRangeType.HOUR).add()
         .task(new Task1()).timeRange(TimeRangeType.DAY).deps(FailingTask.class).add()
-        .execute();
-      schedule.awaitFinish();
+        .execute().awaitDone();
+      System.out.println(schedule.getScheduleId());
       List<TaskStatus> tasks = schedule.getScheduledTasks();
       assertThat(tasks.size(), is(24 + 1));
 
       List<TaskStatus> errors = tasks.stream()
-        .filter(t -> t.getContext().getStatus().code() == TaskStatusCode.ERROR_EXECUTE)
+        .filter(t -> t.code() == TaskStatusCode.ERROR_EXECUTE)
         .collect(Collectors.toList());
       assertThat(errors.size(), is(24));
       for (TaskStatus t : errors) {
@@ -201,10 +215,11 @@ public class JobSchedulerTest {
       }
 
       List<TaskStatus> deps = tasks.stream()
-        .filter(t -> t.getContext().getStatus().code() == TaskStatusCode.ERROR_DEPENDENCY)
+        .filter(t -> t.code() == TaskStatusCode.ERROR_DEPENDENCY)
         .collect(Collectors.toList());
       assertThat(deps.size(), is(1));
       assertThat(deps.get(0).getContext().getId(), is("Task1"));
+      List<TaskStatus> failedTasks = schedule.getFailedTasks();
     }
   }
 

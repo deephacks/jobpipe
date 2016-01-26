@@ -7,11 +7,13 @@ import java.util.stream.Collectors;
  * Provides information regarding the current task execution.
  */
 public class TaskContext {
+  final int scheduleId;
   final String id;
   final Node node;
   final String[] args;
 
   TaskContext(Node node) {
+    this.scheduleId = node.getScheduleId();
     this.id = node.getId();
     this.node = node;
     this.args = node.getArgs() == null ? new String[0] : node.getArgs();
@@ -33,6 +35,13 @@ public class TaskContext {
    */
   public String getId() {
     return id;
+  }
+
+  /**
+   * @return unique schedule id
+   */
+  public int getScheduleId() {
+    return scheduleId;
   }
 
   /**

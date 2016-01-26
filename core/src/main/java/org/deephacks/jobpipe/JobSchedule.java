@@ -3,12 +3,11 @@ package org.deephacks.jobpipe;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class JobSchedule {
   private final TimeRange timeRange;
-  private final String scheduleId;
+  private final int scheduleId;
   private final Map<String, List<Node>> tasks;
   private final boolean verbose;
   private final List<Node> schedule = new ArrayList<>();
@@ -17,8 +16,7 @@ public class JobSchedule {
     this.timeRange = builder.timeRange;
     this.tasks = builder.tasks;
     this.verbose = builder.verbose;
-    this.scheduleId = Optional.ofNullable(builder.scheduleId)
-      .orElseGet(() -> "JobSchedule" + String.valueOf(ThreadLocalRandom.current().nextInt()));
+    this.scheduleId = builder.scheduleId;
   }
 
   public static JobScheduleBuilder newSchedule(PipelineContext context) {
@@ -44,6 +42,10 @@ public class JobSchedule {
       .flatMap(tasks -> tasks.stream())
       .collect(Collectors.toList());
     return getJobSchedule(nodes, taskId);
+  }
+
+  public int getScheduleId() {
+    return scheduleId;
   }
 
   /**
@@ -113,7 +115,7 @@ public class JobSchedule {
   /**
    * @return all tasks are finished executing.
    */
-  public boolean isFinished() {
+  public boolean isDone() {
     for (TaskStatus status : getScheduledTasks()) {
       if (!status.isDone()) {
         return false;
@@ -122,15 +124,11 @@ public class JobSchedule {
     return true;
   }
 
-  public String getScheduleId() {
-    return scheduleId;
-  }
-
   /**
    * Waits until all tasks are finished executing.
    */
-  public JobSchedule awaitFinish() {
-    while (!isFinished()) {
+  public JobSchedule awaitDone() {
+    while (!isDone()) {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
@@ -168,6 +166,14 @@ public class JobSchedule {
   public Map<String, List<TaskStatus>> getScheduledTasksMap() {
     return schedule.stream().map(n -> n.getStatus())
       .collect(Collectors.groupingBy(s -> s.getContext().getId()));
+  }
+
+  /**
+   * @return all tasks that have failed up until now.
+   */
+  public List<TaskStatus> getFailedTasks() {
+    return getScheduledTasks().stream()
+      .filter(task -> task.hasFailed()).collect(Collectors.toList());
   }
 
   private class ScheduleTask implements Runnable {
@@ -223,14 +229,14 @@ public class JobSchedule {
   }
 
   public static class JobScheduleBuilder {
-    private String scheduleId;
     private TimeRange timeRange;
     private Map<String, List<Node>> tasks = new HashMap<>();
     private Scheduler defaultScheduler;
     private JobObserver observer;
     private String targetTaskId;
     private String[] args;
-    public boolean verbose;
+    private boolean verbose;
+    private final int scheduleId = ThreadLocalRandom.current().nextInt();
 
     private JobScheduleBuilder(String timeFormat) {
       this.timeRange = new TimeRange(timeFormat);
@@ -252,14 +258,6 @@ public class JobSchedule {
      */
     public TaskBuilder task(Task task) {
       return new TaskBuilder(task, this);
-    }
-
-    /**
-     * @param scheduleId a globally unique id of this schedule.
-     */
-    public JobScheduleBuilder scheduleId(String scheduleId) {
-      this.scheduleId = scheduleId;
-      return this;
     }
 
     /**
@@ -398,7 +396,9 @@ public class JobSchedule {
         Scheduler scheduler = Optional.ofNullable(this.scheduler)
           .orElseGet(() -> jobScheduleBuilder.defaultScheduler = Optional.ofNullable(jobScheduleBuilder.defaultScheduler)
             .orElseGet(() -> new DefaultScheduler()));
-        Node node = new Node(id, task, range, scheduler, jobScheduleBuilder.args, jobScheduleBuilder.observer, jobScheduleBuilder.verbose);
+        Node node = new Node(id, jobScheduleBuilder.scheduleId, task, range,
+          scheduler, jobScheduleBuilder.args, jobScheduleBuilder.observer,
+          jobScheduleBuilder.verbose);
         for (String dep : deps) {
           List<Node> nodes = jobScheduleBuilder.tasks.get(dep);
           if (nodes == null) {

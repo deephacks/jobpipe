@@ -24,6 +24,6 @@ public class TestPipeline implements Pipeline {
       .task(new TestTask()).id("2").timeRange(TimeRangeType.HOUR).depIds("1").add()
       .task(new TestTask()).id("3").timeRange(TimeRangeType.HOUR).depIds("2").add()
       .execute()
-      .awaitFinish();
+      .awaitDone();
   }
 }

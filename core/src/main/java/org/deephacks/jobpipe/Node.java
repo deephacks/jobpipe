@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 class Node {
   private final String id;
+  private final int scheduleId;
   private final TaskContext context;
   private final TimeRange range;
   private final List<Node> dependencies = new ArrayList<>();
@@ -15,8 +16,9 @@ class Node {
   private final String[] args;
   private final AtomicReference<TaskStatus> status = new AtomicReference<>();
 
-  Node(String id, Task task, TimeRange range, Scheduler scheduler, String[] args, JobObserver observer, boolean verbose) {
+  Node(String id, int scheduleId, Task task, TimeRange range, Scheduler scheduler, String[] args, JobObserver observer, boolean verbose) {
     this.id = id;
+    this.scheduleId = scheduleId;
     this.range = range;
     this.args = args;
     this.scheduler = scheduler;
@@ -55,6 +57,10 @@ class Node {
 
   String getId() {
     return id;
+  }
+
+  int getScheduleId() {
+    return scheduleId;
   }
 
   TimeRange getRange() {
