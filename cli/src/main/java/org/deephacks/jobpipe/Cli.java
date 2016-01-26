@@ -69,12 +69,14 @@ public class Cli {
           pipeline.execute(context);
           if (context.schedule != null) {
             context.schedule.awaitDone();
-            System.out.println("\nFailure executing pipeline:");
-            for (TaskStatus fail : context.schedule.getFailedTasks()) {
-              System.out.println(fail.code() + " " + fail.getContext());
+            if (context.schedule.getFailedTasks().isEmpty()) {
+              System.out.println("\nFailure executing pipeline:");
+              for (TaskStatus fail : context.schedule.getFailedTasks()) {
+                System.out.println(fail.code() + " " + fail.getContext());
+              }
+              System.exit(1);
             }
           }
-          return;
         }
       }
       System.out.println("'" + cls + "' matches no pipeline, existing pipelines:");
