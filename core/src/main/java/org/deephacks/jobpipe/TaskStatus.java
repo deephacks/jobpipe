@@ -35,7 +35,8 @@ public class TaskStatus {
   public boolean hasFailed() {
     return TaskStatusCode.ERROR_DEPENDENCY == code ||
       TaskStatusCode.ERROR_EXECUTE == code ||
-      TaskStatusCode.ERROR_NO_INPUT == code;
+      TaskStatusCode.ERROR_NO_INPUT == code ||
+      TaskStatusCode.ERROR_ABORTED == code;
   }
 
   public TaskContext getContext() {
@@ -102,7 +103,19 @@ public class TaskStatus {
     this.lastUpdate = System.currentTimeMillis();
   }
 
+  public void abort() {
+    setCode(TaskStatusCode.ERROR_ABORTED);
+  }
+
   public enum TaskStatusCode {
-    NEW, SCHEDULED, FINISHED, SKIPPED, RUNNING, ERROR_NO_INPUT, ERROR_EXECUTE, ERROR_DEPENDENCY, ABORTED
+    NEW,
+    SCHEDULED,
+    FINISHED,
+    SKIPPED,
+    RUNNING,
+    ERROR_NO_INPUT,
+    ERROR_EXECUTE,
+    ERROR_DEPENDENCY,
+    ERROR_ABORTED
   }
 }

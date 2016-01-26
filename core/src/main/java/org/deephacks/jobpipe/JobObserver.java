@@ -15,7 +15,8 @@ public interface JobObserver {
    * the stacktrace on System.err.
    *
    * @param status next status.
-   * @return false to reject the status change.
+   * @return false to reject the status change and set status to
+   * {@link org.deephacks.jobpipe.TaskStatus.TaskStatusCode#ERROR_ABORTED}
    */
   boolean notify(TaskStatus status);
 }

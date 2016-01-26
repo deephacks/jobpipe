@@ -205,6 +205,8 @@ public class JobSchedule {
           if (node.getStatus().running()) {
             node.execute();
             node.getStatus().finished();
+          } else {
+            node.getStatus().abort();
           }
         } else {
           node.getStatus().skipped();
@@ -224,6 +226,8 @@ public class JobSchedule {
       if (node.getStatus().scheduled()) {
         long timeout = node.getTimeout().getMillis() - System.currentTimeMillis();
         node.getScheduler().schedule(this, timeout, TimeUnit.MILLISECONDS);
+      } else {
+        node.getStatus().abort();
       }
     }
   }

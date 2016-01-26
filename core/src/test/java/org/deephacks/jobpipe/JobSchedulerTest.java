@@ -193,6 +193,20 @@ public class JobSchedulerTest {
       .execute().awaitDone();
   }
 
+  @Test
+  public void testAbortingObserver() {
+    JobSchedule schedule = JobSchedule.newSchedule("2013-12-18T15:16")
+      .verbose(true)
+      .observer(status -> false)
+      .task(new Task1()).timeRange(SECOND).add()
+      .task(new Task2()).timeRange(TimeRangeType.MINUTE).deps(Task1.class).add()
+      .execute().awaitDone();
+    List<TaskStatus> failedTasks = schedule.getFailedTasks();
+    assertThat(failedTasks.size(), is(61));
+    failedTasks.stream().map(t -> t.code())
+      .forEach(c -> assertThat(c, is(TaskStatusCode.ERROR_ABORTED)));
+  }
+
 
   @Test(timeout = 15_000)
   public void testFailedTaskAbortsExecution() {
