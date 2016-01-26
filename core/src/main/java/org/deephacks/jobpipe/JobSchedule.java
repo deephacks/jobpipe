@@ -260,6 +260,16 @@ public class JobSchedule {
       return new TaskBuilder(task, this);
     }
 
+    public JobScheduleBuilder verbose(boolean verbose) {
+      this.verbose = verbose;
+      return this;
+    }
+
+    public JobScheduleBuilder args(String[] args) {
+      this.args = args;
+      return this;
+    }
+
     /**
      * @param cls start executing at this task, including dependent tasks.
      */

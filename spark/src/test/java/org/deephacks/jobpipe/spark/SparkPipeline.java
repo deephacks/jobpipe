@@ -27,7 +27,7 @@ public class SparkPipeline implements Pipeline {
       .build();
     JobSchedule.newSchedule("2015-10-11T11")
       .task(task).timeRange(HOUR).add()
-      .execute().awaitFinish().shutdownAfter();
+      .execute().awaitDone().shutdownAfter();
 
   }
 
@@ -39,7 +39,7 @@ public class SparkPipeline implements Pipeline {
       .build();
     JobSchedule.newSchedule(context)
       .task(task).timeRange(HOUR).add()
-      .execute().awaitFinish().shutdownAfter();
+      .execute().awaitDone().shutdownAfter();
   }
 
 
