@@ -185,22 +185,23 @@ public class JobSchedule {
 
     @Override
     public void run() {
-      for (Node dep : node.getDependencies()) {
-        if (dep.getStatus().hasFailed()) {
-          // fail early
-          node.getStatus().failedDep(dep.getContext());
-          return;
-        } else if (!node.dependenciesDone() && !dep.hasOutput()) {
-          // wait for output
-          retry(1);
-          return;
-        } else if (node.dependenciesDone() && !dep.hasOutput()) {
-          // dependencies failed to produce output
-          node.getStatus().failedDepNoInput(dep.getContext());
-          return;
-        }
-      }
       try {
+        for (Node dep : node.getDependencies()) {
+          if (dep.getStatus().hasFailed()) {
+            // fail early
+            node.getStatus().failedDep(dep.getContext());
+            return;
+          } else if (!node.dependenciesDone() && !dep.hasOutput()) {
+            // wait for output
+            retry(1);
+            return;
+          } else if (node.dependenciesDone() && !dep.hasOutput()) {
+            // dependencies failed to produce output
+            node.getStatus().failedDepNoInput(dep.getContext());
+            return;
+          }
+        }
+
         if (!node.hasOutput()) {
           if (node.getStatus().running()) {
             node.execute();
