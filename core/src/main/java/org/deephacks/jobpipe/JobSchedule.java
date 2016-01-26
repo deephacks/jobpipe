@@ -1,11 +1,14 @@
 package org.deephacks.jobpipe;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class JobSchedule {
   private final TimeRange timeRange;
+  private final String scheduleId;
   private final Map<String, List<Node>> tasks;
   private final boolean verbose;
   private final List<Node> schedule = new ArrayList<>();
@@ -14,6 +17,8 @@ public class JobSchedule {
     this.timeRange = builder.timeRange;
     this.tasks = builder.tasks;
     this.verbose = builder.verbose;
+    this.scheduleId = Optional.ofNullable(builder.scheduleId)
+      .orElseGet(() -> "JobSchedule" + String.valueOf(ThreadLocalRandom.current().nextInt()));
   }
 
   public static JobScheduleBuilder newSchedule(PipelineContext context) {
@@ -117,6 +122,10 @@ public class JobSchedule {
     return true;
   }
 
+  public String getScheduleId() {
+    return scheduleId;
+  }
+
   /**
    * Waits until all tasks are finished executing.
    */
@@ -214,11 +223,12 @@ public class JobSchedule {
   }
 
   public static class JobScheduleBuilder {
+    private String scheduleId;
     private TimeRange timeRange;
     private Map<String, List<Node>> tasks = new HashMap<>();
     private Scheduler defaultScheduler;
     private JobObserver observer;
-    private String taskId;
+    private String targetTaskId;
     private String[] args;
     public boolean verbose;
 
@@ -233,10 +243,9 @@ public class JobSchedule {
     public JobScheduleBuilder(PipelineContext context) {
       this.timeRange = context.range;
       this.args = context.args;
-      this.taskId = context.taskId;
+      this.targetTaskId = context.targetTaskId;
       this.verbose = context.verbose;
     }
-
 
     /**
      * @param task create a new task
@@ -246,10 +255,18 @@ public class JobSchedule {
     }
 
     /**
+     * @param scheduleId a globally unique id of this schedule.
+     */
+    public JobScheduleBuilder scheduleId(String scheduleId) {
+      this.scheduleId = scheduleId;
+      return this;
+    }
+
+    /**
      * @param cls start executing at this task, including dependent tasks.
      */
     public JobScheduleBuilder targetTask(Class<? extends Task> cls) {
-      this.taskId = cls.getSimpleName();
+      this.targetTaskId = cls.getSimpleName();
       return this;
     }
 
@@ -257,7 +274,7 @@ public class JobSchedule {
      * @param taskId start execution at this task, including dependent tasks.
      */
     public JobScheduleBuilder targetTask(String taskId) {
-      this.taskId = taskId;
+      this.targetTaskId = taskId;
       return this;
     }
 
@@ -279,7 +296,7 @@ public class JobSchedule {
 
     public JobSchedule execute() {
       JobSchedule jobSchedule = new JobSchedule(this);
-      jobSchedule.execute(taskId);
+      jobSchedule.execute(targetTaskId);
       return jobSchedule;
     }
   }
