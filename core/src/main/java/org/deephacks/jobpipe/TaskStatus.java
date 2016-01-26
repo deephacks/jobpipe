@@ -34,6 +34,7 @@ public class TaskStatus {
     return TaskStatusCode.ERROR_DEPENDENCY == code ||
       TaskStatusCode.ERROR_EXECUTE == code ||
       TaskStatusCode.ERROR_NO_INPUT == code ||
+      TaskStatusCode.ERROR_SIGTERM == code ||
       TaskStatusCode.ERROR_ABORTED == code;
   }
 
