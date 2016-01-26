@@ -1,8 +1,6 @@
 package org.deephacks.jobpipe;
 
 import org.deephacks.jobpipe.TaskStatus.TaskStatusCode;
-import org.deephacks.jobpipe.Tasks.Task1;
-import org.deephacks.jobpipe.Tasks.Task2;
 import org.junit.Test;
 
 import java.io.File;
@@ -196,7 +194,6 @@ public class JobSchedulerTest {
   @Test
   public void testAbortingObserver() {
     JobSchedule schedule = JobSchedule.newSchedule("2013-12-18T15:16")
-      .verbose(true)
       .observer(status -> false)
       .task(new Task1()).timeRange(SECOND).add()
       .task(new Task2()).timeRange(TimeRangeType.MINUTE).deps(Task1.class).add()
@@ -282,6 +279,37 @@ public class JobSchedulerTest {
         .map(o -> (File) o.get()).peek(file -> assertTrue(file.exists()))
         .collect(Collectors.toList());
       assertThat(files.size(), is(60));
+      output.create();
+    }
+
+    @Override
+    public TaskOutput getOutput(TaskContext ctx) {
+      return output;
+    }
+  }
+
+
+  @TaskSpec(timeRange = TimeRangeType.DAY)
+  public static class Task1 implements Task {
+    TmpFileOutput output = new TmpFileOutput();
+
+    @Override
+    public void execute(TaskContext ctx) {
+      output.create();
+    }
+
+    @Override
+    public TaskOutput getOutput(TaskContext ctx) {
+      return output;
+    }
+  }
+
+  @TaskSpec(timeRange = TimeRangeType.MINUTE)
+  public static class Task2 implements Task {
+    TmpFileOutput output = new TmpFileOutput();
+
+    @Override
+    public void execute(TaskContext ctx) {
       output.create();
     }
 
