@@ -113,14 +113,25 @@ public class TaskStatus {
   }
 
   public enum TaskStatusCode {
+    /** the task has just been created */
     NEW,
+    /** the task has been scheduled for execution */
     SCHEDULED,
+    /** the task has completed successfully */
     FINISHED,
+    /** the output for this task already exist */
     SKIPPED,
+    /** the task is running {@link org.deephacks.jobpipe.Task#execute(TaskContext)} */
     RUNNING,
+    /** input to this task did not exist */
     ERROR_NO_INPUT,
+    /** {@link org.deephacks.jobpipe.Task#execute(TaskContext)} threw a runtime exception */
     ERROR_EXECUTE,
+    /** a dependency has failed which also failed this task */
     ERROR_DEPENDENCY,
-    ERROR_ABORTED
+    /** observer aborted the task */
+    ERROR_ABORTED,
+    /** the program aborted with SIGTERM */
+    ERROR_SIGTERM
   }
 }
