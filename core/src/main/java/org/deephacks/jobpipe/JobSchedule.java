@@ -1,7 +1,7 @@
 package org.deephacks.jobpipe;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class JobSchedule {
@@ -153,6 +153,14 @@ public class JobSchedule {
     return schedule.stream().map(node -> node.getStatus()).collect(Collectors.toList());
   }
 
+  /**
+   * @return all tasks that have been scheduled, including finished tasks, mapped by task id.
+   */
+  public Map<String, List<TaskStatus>> getScheduledTasksMap() {
+    return schedule.stream().map(n -> n.getStatus())
+      .collect(Collectors.groupingBy(s -> s.getContext().getId()));
+  }
+
   private class ScheduleTask implements Runnable {
     Node node;
 
@@ -164,10 +172,16 @@ public class JobSchedule {
     public void run() {
       for (Node dep : node.getDependencies()) {
         if (dep.getStatus().hasFailed()) {
+          // fail early
           node.getStatus().failedDep(dep.getContext());
           return;
-        } else if (!dep.hasOutput()) {
+        } else if (!node.dependenciesDone() && !dep.hasOutput()) {
+          // wait for output
           retry(1);
+          return;
+        } else if (node.dependenciesDone() && !dep.hasOutput()) {
+          // dependencies failed to produce output
+          node.getStatus().failedDepNoInput(dep.getContext());
           return;
         }
       }

@@ -34,7 +34,8 @@ public class TaskStatus {
 
   public boolean hasFailed() {
     return TaskStatusCode.ERROR_DEPENDENCY == code ||
-      TaskStatusCode.ERROR_EXECUTE == code;
+      TaskStatusCode.ERROR_EXECUTE == code ||
+      TaskStatusCode.ERROR_NO_INPUT == code;
   }
 
   public TaskContext getContext() {
@@ -76,6 +77,11 @@ public class TaskStatus {
     setCode(TaskStatusCode.ERROR_DEPENDENCY);
   }
 
+  void failedDepNoInput(TaskContext failedDep) {
+    this.failReason = failedDep;
+    setCode(TaskStatusCode.ERROR_NO_INPUT);
+  }
+
   void finished() {
     setCode(TaskStatusCode.FINISHED);
   }
@@ -97,6 +103,6 @@ public class TaskStatus {
   }
 
   public enum TaskStatusCode {
-    NEW, SCHEDULED, FINISHED, SKIPPED, RUNNING, ERROR_EXECUTE, ERROR_DEPENDENCY, ABORTED
+    NEW, SCHEDULED, FINISHED, SKIPPED, RUNNING, ERROR_NO_INPUT, ERROR_EXECUTE, ERROR_DEPENDENCY, ABORTED
   }
 }

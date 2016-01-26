@@ -8,12 +8,11 @@ import org.junit.Test;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
-import static org.deephacks.jobpipe.Tasks.sleep;
 import static org.deephacks.jobpipe.TimeRangeType.MINUTE;
 import static org.deephacks.jobpipe.TimeRangeType.SECOND;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -22,6 +21,7 @@ import static org.junit.Assert.assertThat;
 
 public class JobSchedulerTest {
   private JobObserver observer = new JobObserverLog();
+
   /**
    * See dag.png in this directory
    */
@@ -147,6 +147,21 @@ public class JobSchedulerTest {
   }
 
   @Test
+  public void testMissingDepInput() {
+    JobSchedule schedule = JobSchedule.newSchedule("1995-01-17")
+      .task(new MissingOutputTask()).id("missing").timeRange(TimeRangeType.MINUTE).add()
+      .task(new Task1()).id("task1").timeRange(TimeRangeType.HOUR).depIds("missing").add()
+      .execute().awaitFinish();
+    Map<String, List<TaskStatus>> tasks = schedule.getScheduledTasksMap();
+    List<TaskStatus> missing = tasks.get("missing");
+    assertThat(missing.size(), is(1440));
+    missing.stream().forEach(t -> assertThat(t.code(), is(TaskStatusCode.FINISHED)));
+    List<TaskStatus> task1 = tasks.get("task1");
+    assertThat(task1.size(), is(24));
+    task1.stream().forEach(t -> assertThat(t.code(), is(TaskStatusCode.ERROR_NO_INPUT)));
+  }
+
+  @Test
   public void testDifferentTaskTypes() {
     Scheduler scheduler = new DefaultScheduler(1);
     JobSchedule.newSchedule("2011-01-17T15:16")
@@ -203,6 +218,29 @@ public class JobSchedulerTest {
     @Override
     public TaskOutput getOutput(TaskContext ctx) {
       return new TmpFileOutput();
+    }
+  }
+
+  public static class MissingOutputTask implements Task {
+
+    @Override
+    public void execute(TaskContext ctx) {
+      // do not write output
+    }
+
+    @Override
+    public TaskOutput getOutput(TaskContext ctx) {
+      return new TaskOutput() {
+        @Override
+        public boolean exist() {
+          return false;
+        }
+
+        @Override
+        public Object get() {
+          return null;
+        }
+      };
     }
   }
 

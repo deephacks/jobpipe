@@ -2,9 +2,7 @@ package org.deephacks.jobpipe;
 
 import org.joda.time.DateTime;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 class Node {
@@ -61,6 +59,15 @@ class Node {
 
   TimeRange getRange() {
     return range;
+  }
+
+  boolean dependenciesDone() {
+    for (Node n : dependencies) {
+      if (!n.getStatus().isDone()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   void addDependencies(Node... tasks) {
