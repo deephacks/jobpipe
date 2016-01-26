@@ -10,12 +10,10 @@ public class TaskStatus {
   private final JobObserver observer;
   private final boolean verbose;
 
-  public TaskStatus(TaskContext context, JobObserver observer, boolean verbose) {
+  TaskStatus(TaskContext context, JobObserver observer, boolean verbose) {
     this.context = context;
     this.observer = observer;
     this.verbose = verbose;
-    setCode(TaskStatusCode.NEW);
-    setLastUpdate();
   }
 
   public Optional<Object> getFailReason() {
@@ -48,6 +46,9 @@ public class TaskStatus {
   }
 
   boolean setCode(TaskStatusCode code) {
+    if (hasFailed()) {
+      return false;
+    }
     if (this.code != code) {
       this.code = code;
       if (verbose) {
@@ -66,6 +67,10 @@ public class TaskStatus {
       }
       return false;
     }
+  }
+
+  boolean newTask() {
+    return setCode(TaskStatusCode.NEW);
   }
 
   void failed(Throwable e) {
