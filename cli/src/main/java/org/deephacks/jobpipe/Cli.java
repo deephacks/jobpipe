@@ -69,7 +69,7 @@ public class Cli {
           pipeline.execute(context);
           if (context.schedule != null) {
             context.schedule.awaitDone();
-            if (context.schedule.getFailedTasks().isEmpty()) {
+            if (!context.schedule.getFailedTasks().isEmpty()) {
               System.out.println("\nFailure executing pipeline:");
               for (TaskStatus fail : context.schedule.getFailedTasks()) {
                 System.out.println(fail.code() + " " + fail.getContext());
