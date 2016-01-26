@@ -77,6 +77,7 @@ public class Cli {
               System.exit(1);
             }
           }
+          return;
         }
       }
       System.out.println("'" + cls + "' matches no pipeline, existing pipelines:");
