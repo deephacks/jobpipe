@@ -63,7 +63,9 @@ public class TaskStatus {
       this.code = code;
       Debug.debug(context + " -> " + this.code +
         " " + retries.incrementAndGet(), verbose);
+      return notifyObserver();
     } else if (hasFailed()) {
+      // hasFailed check must check after RETRY
       return false;
     } else if (this.code != code) {
       this.code = code;
@@ -71,9 +73,14 @@ public class TaskStatus {
       if (code == TaskStatusCode.ERROR_EXECUTE) {
         Debug.debug(this.failReason, verbose);
       }
+      return notifyObserver();
     }
-    setLastUpdate();
+    return true;
+  }
+
+  private boolean notifyObserver() {
     try {
+      setLastUpdate();
       return observer != null ? observer.notify(this) : true;
     } catch (Throwable e) {
       Debug.debug(e, verbose);

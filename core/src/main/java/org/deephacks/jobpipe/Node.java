@@ -27,11 +27,7 @@ class Node {
     this.context = new TaskContext(this);
     this.task = task;
     this.retries = retries;
-    TaskStatus status = new TaskStatus(context, observer, verbose);
-    if (!status.newTask()) {
-      status.abort();
-    }
-    this.status.set(status);
+    this.status.set(new TaskStatus(context, observer, verbose));
   }
 
   void execute() {

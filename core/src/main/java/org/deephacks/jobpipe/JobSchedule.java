@@ -3,7 +3,7 @@ package org.deephacks.jobpipe;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class JobSchedule {
@@ -41,27 +41,27 @@ public class JobSchedule {
     return new JobScheduleBuilder(range);
   }
 
-  private List<Node> getJobSchedule(String taskId) {
+  public int getScheduleId() {
+    return scheduleId;
+  }
+
+  private List<Node> getJobSchedule(String targetTaskId) {
     List<Node> nodes = tasks.values().stream()
       .flatMap(tasks -> tasks.stream())
       .collect(Collectors.toList());
-    return getJobSchedule(nodes, taskId);
-  }
-
-  public int getScheduleId() {
-    return scheduleId;
+    return getJobSchedule(nodes, targetTaskId);
   }
 
   /**
    * Breadth first search.
    */
-  private List<Node> getJobSchedule(List<Node> graph, String taskId) {
+  private List<Node> getJobSchedule(List<Node> graph, String targetTaskId) {
     ArrayList<Node> result = new ArrayList<>();
     if (graph == null || graph.size() == 0) {
       return graph;
     }
-    if (taskId != null) {
-      graph = createGraphFrom(taskId, graph);
+    if (targetTaskId != null && !targetTaskId.isEmpty()) {
+      graph = createGraphFrom(targetTaskId, graph);
     }
     // keep track of all neighbours
     HashMap<Node, Integer> neighbours = new HashMap<>();
@@ -93,10 +93,12 @@ public class JobSchedule {
     return result;
   }
 
-  private List<Node> createGraphFrom(String taskId, List<Node> graph) {
+  private List<Node> createGraphFrom(String targetTaskId, List<Node> graph) {
+    Pattern pattern = Pattern.compile(targetTaskId);
     ArrayList<Node> result = new ArrayList<>();
     for (Node node : graph) {
-      if (node.getId().equals(taskId)) {
+      if (pattern.matcher(node.getId()).find()) {
+        node.getStatus().newTask();
         result.add(node);
         result.addAll(node.getDependencies());
       }
@@ -104,8 +106,8 @@ public class JobSchedule {
     return result;
   }
 
-  private List<Node> execute(String taskId) {
-    List<Node> jobSchedule = getJobSchedule(taskId);
+  private List<Node> execute(String targetTaskId) {
+    List<Node> jobSchedule = getJobSchedule(targetTaskId);
     if (jobSchedule.isEmpty()) {
       return new ArrayList<>();
     }

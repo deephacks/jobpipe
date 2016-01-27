@@ -3,7 +3,6 @@ package org.deephacks.jobpipe;
 import joptsimple.*;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class Cli {
@@ -17,7 +16,7 @@ public class Cli {
       "ex 2016-01, 2013-W12, 2016-10-11, 2013-12-01T12")
       .withRequiredArg().ofType(String.class).describedAs("range");
 
-    OptionSpec<String> optTaskId = parser.accepts("task", "Task to execute, or nothing for everything.")
+    OptionSpec<String> optTaskId = parser.accepts("task", "Task regexp to execute, or nothing for everything.")
       .withRequiredArg().ofType(String.class).describedAs("task");
 
     parser.accepts("h", "Display help");
