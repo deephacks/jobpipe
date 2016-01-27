@@ -98,7 +98,6 @@ public class JobSchedule {
     ArrayList<Node> result = new ArrayList<>();
     for (Node node : graph) {
       if (pattern.matcher(node.getId()).find()) {
-        node.getStatus().newTask();
         result.add(node);
         result.addAll(node.getDependencies());
       }
@@ -111,8 +110,13 @@ public class JobSchedule {
     if (jobSchedule.isEmpty()) {
       return new ArrayList<>();
     }
-    schedule.addAll(jobSchedule);
     for (Node n : jobSchedule) {
+      if (!n.getStatus().newTask()) {
+        n.getStatus().abort();
+      }
+      schedule.add(n);
+    }
+    for (Node n : schedule) {
       new ScheduleTask(n).schedule();
     }
     return jobSchedule;
@@ -373,7 +377,7 @@ public class JobSchedule {
     /**
      * @param tasks dependent tasks
      */
-    public TaskBuilder deps(Collection<Class<? extends Task>> tasks) {
+    public TaskBuilder deps(Collection<Class<?>> tasks) {
       List<String> ids = tasks.stream()
         .map(cls -> cls.getSimpleName())
         .collect(Collectors.toList());
@@ -383,7 +387,7 @@ public class JobSchedule {
     /**
      * @param tasks dependent tasks
      */
-    public TaskBuilder deps(Class<? extends Task>... tasks) {
+    public TaskBuilder deps(Class<?>... tasks) {
       return deps(Arrays.asList(tasks));
     }
 
@@ -410,11 +414,14 @@ public class JobSchedule {
      */
     public JobScheduleBuilder add() {
       TaskSpec taskSpec = task.getClass().getAnnotation(TaskSpec.class);
+      if (taskSpec == null) {
+        taskSpec = task.getTaskSpec();
+      }
       if (taskSpec != null) {
         if (timeRangeType == null) {
           timeRangeType = taskSpec.timeRange();
         }
-        if (id != null && !taskSpec.id().isEmpty()) {
+        if (id == null && !taskSpec.id().isEmpty()) {
           id = taskSpec.id();
         }
       }

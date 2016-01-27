@@ -24,4 +24,10 @@ public interface Task {
    */
   <T extends TaskOutput> T getOutput(TaskContext context);
 
+  /**
+   * @return set the task spec from other class than implementation.
+   */
+  default TaskSpec getTaskSpec() {
+    return null;
+  }
 }

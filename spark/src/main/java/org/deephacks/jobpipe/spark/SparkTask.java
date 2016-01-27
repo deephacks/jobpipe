@@ -1,13 +1,11 @@
 package org.deephacks.jobpipe.spark;
 
 import org.apache.spark.launcher.SparkLauncher;
-import org.deephacks.jobpipe.PathSubstitutor;
-import org.deephacks.jobpipe.Task;
-import org.deephacks.jobpipe.TaskContext;
-import org.deephacks.jobpipe.TaskOutput;
+import org.deephacks.jobpipe.*;
 import org.joda.time.DateTime;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -54,6 +52,30 @@ public class SparkTask implements Task {
         throw new RuntimeException("process exit status " + process.exitValue());
       }
     }
+  }
+
+  @Override
+  public TaskSpec getTaskSpec() {
+    TaskSpec taskSpec = config.mainClass.getAnnotation(TaskSpec.class);
+    if (taskSpec == null) {
+      taskSpec = new TaskSpec() {
+        @Override
+        public Class<? extends Annotation> annotationType() {
+          return TaskSpec.class;
+        }
+
+        @Override
+        public String id() {
+          return config.mainClass.getSimpleName();
+        }
+
+        @Override
+        public TimeRangeType timeRange() {
+          return null;
+        }
+      };
+    }
+    return taskSpec;
   }
 
   @Override
