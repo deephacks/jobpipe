@@ -84,7 +84,7 @@ A target time range can be sepecified as follows.
 
 - Minute, 2016-01-10T10:10
 - Hour, 2016-01-10T22
-- Day, 2016-01-1
+- Day, 2016-01-01
 - Week, 2016-w01
 - Month, 2016-01 
 - Interval, 2016-10-10T10/2016-10-10T12 (2 hours) or 2016-10-10/2016-10-15 (5 days)
