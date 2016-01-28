@@ -80,7 +80,14 @@ Executing this schedule for 2016-01-10 will yield the following task executions.
 [Task2,2016-01-10]
 ```
 
-Time ranges can be sepecified minutely (2016-01-10T10:10), hourly (2016-01-10T22), daily (2016-01-10), weekly (2016-w01) or monthly (2016-01).
+A target time range can be sepecified as follows.
+
+- Minute, 2016-01-10T10:10
+- Hour, 2016-01-10T22
+- Day, 2016-01-1
+- Week, 2016-w01
+- Month, 2016-01 
+- Interval, 2016-10-10T10/2016-10-10T12 (2 hours) or 2016-10-10/2016-10-15 (5 days)
 
 #### Example 3 - Arguments
 
