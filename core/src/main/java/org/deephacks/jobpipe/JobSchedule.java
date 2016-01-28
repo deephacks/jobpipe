@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 public class JobSchedule {
   private final TimeRange timeRange;
   private final int scheduleId;
-  private final Map<String, List<Node>> tasks;
+  private final List<Map<String, List<Node>>> tasks;
   private final boolean verbose;
   private final List<Node> schedule = new ArrayList<>();
 
@@ -46,10 +46,15 @@ public class JobSchedule {
   }
 
   private List<Node> getJobSchedule(String targetTaskId) {
-    List<Node> nodes = tasks.values().stream()
-      .flatMap(tasks -> tasks.stream())
-      .collect(Collectors.toList());
-    return getJobSchedule(nodes, targetTaskId);
+    List<Node> fullGraph = new ArrayList<>();
+    for (Map<String, List<Node>> intervalGraph : tasks) {
+      List<Node> nodes = intervalGraph.values().stream()
+        .flatMap(tasks -> tasks.stream())
+        .collect(Collectors.toList());
+      fullGraph.addAll(getJobSchedule(nodes, targetTaskId));
+
+    }
+    return fullGraph;
   }
 
   /**
@@ -249,7 +254,7 @@ public class JobSchedule {
   public static class JobScheduleBuilder {
     private PipelineContext pipelineContext;
     private TimeRange timeRange;
-    private Map<String, List<Node>> tasks = new HashMap<>();
+    private List<Map<String, List<Node>>> tasks = new ArrayList<>();
     private Scheduler defaultScheduler;
     private JobObserver observer;
     private String targetTaskId;
@@ -258,16 +263,22 @@ public class JobSchedule {
     private final int scheduleId = ThreadLocalRandom.current().nextInt();
 
     private JobScheduleBuilder(String timeFormat) {
-      this.timeRange = new TimeRange(timeFormat);
+      this(new TimeRange(timeFormat));
     }
 
     private JobScheduleBuilder(TimeRange range) {
       this.timeRange = range;
+      for (int i = 0; i < timeRange.intervalsBetween(); i++) {
+        tasks.add(new HashMap<>());
+      }
     }
 
     public JobScheduleBuilder(PipelineContext context) {
       this.pipelineContext = context;
       this.timeRange = context.range;
+      for (int i = 0; i < timeRange.intervalsBetween(); i++) {
+        tasks.add(new HashMap<>());
+      }
       this.args = context.args;
       this.targetTaskId = context.targetTaskId;
       this.verbose = context.verbose;
@@ -431,28 +442,33 @@ public class JobSchedule {
       if (timeRangeType == null) {
         throw new IllegalArgumentException(id + " does not have a time range.");
       }
-      for (TimeRange range : timeRangeType.ranges(jobScheduleBuilder.timeRange)) {
-        Scheduler scheduler = Optional.ofNullable(this.scheduler)
-          .orElseGet(() -> jobScheduleBuilder.defaultScheduler = Optional.ofNullable(jobScheduleBuilder.defaultScheduler)
-            .orElseGet(() -> new DefaultScheduler()));
-        Node node = new Node(id, jobScheduleBuilder.scheduleId, task, range,
-          scheduler, jobScheduleBuilder.args, jobScheduleBuilder.observer,
-          jobScheduleBuilder.verbose, retries);
-        for (String dep : deps) {
-          List<Node> nodes = jobScheduleBuilder.tasks.get(dep);
-          if (nodes == null) {
-            throw new IllegalArgumentException("Dependency does not exist " + dep);
+      TimeRange currentRange = jobScheduleBuilder.timeRange.interval();
+      for (int i = 0; i < jobScheduleBuilder.timeRange.intervalsBetween(); i++) {
+        Map<String, List<Node>> tasks = jobScheduleBuilder.tasks.get(i);
+        for (TimeRange range : timeRangeType.ranges(currentRange)) {
+          Scheduler scheduler = Optional.ofNullable(this.scheduler)
+            .orElseGet(() -> jobScheduleBuilder.defaultScheduler = Optional.ofNullable(jobScheduleBuilder.defaultScheduler)
+              .orElseGet(() -> new DefaultScheduler()));
+          Node node = new Node(id, jobScheduleBuilder.scheduleId, task, range,
+            scheduler, jobScheduleBuilder.args, jobScheduleBuilder.observer,
+            jobScheduleBuilder.verbose, retries);
+          for (String dep : deps) {
+            List<Node> nodes = tasks.get(dep);
+            if (nodes == null) {
+              throw new IllegalArgumentException("Dependency does not exist " + dep);
+            }
+            for (Node n : nodes) {
+              node.addDependencies(n);
+            }
           }
-          for (Node n : nodes) {
-            node.addDependencies(n);
-          }
-        }
 
-        List<Node> nodes = jobScheduleBuilder.tasks.computeIfAbsent(id, key -> new ArrayList<>());
-        if (nodes.contains(node)) {
-          throw new IllegalArgumentException(node.getTask() + " already exist");
+          List<Node> nodes = tasks.computeIfAbsent(id, key -> new ArrayList<>());
+          if (nodes.contains(node)) {
+            throw new IllegalArgumentException(node.getTask() + " already exist");
+          }
+          nodes.add(node);
         }
-        nodes.add(node);
+        currentRange = currentRange.next();
       }
       return jobScheduleBuilder;
     }

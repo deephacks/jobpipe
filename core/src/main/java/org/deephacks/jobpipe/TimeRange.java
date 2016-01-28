@@ -89,8 +89,17 @@ public class TimeRange {
   }
 
   public DateTime to() {
-    return next().from;
+    return to;
   }
+
+  public TimeRange nextInterval() {
+    return new TimeRange(type.next(from, 1), type, 1);
+  }
+
+  public TimeRange interval() {
+    return new TimeRange(from, type, 1);
+  }
+
 
   public TimeRange next() {
     return new TimeRange(type.next(from, intervalsBetween), type, intervalsBetween);

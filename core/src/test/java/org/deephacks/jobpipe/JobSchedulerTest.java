@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertTrue;
@@ -181,6 +182,27 @@ public class JobSchedulerTest {
     schedule.getScheduledTasks().stream()
       .map(t -> t.getContext().getScheduleId())
       .forEach(id -> assertThat(id, is(scheduleId)));
+  }
+
+  @Test
+  public void testMultipleIntervals() {
+    JobSchedule schedule = JobSchedule.newSchedule("2011-01-17T10/2011-01-17T12")
+      .task(new Task1()).timeRange(MINUTE).add()
+      .task(new Task2()).timeRange(TimeRangeType.HOUR).deps(Task1.class).add()
+      .execute().awaitDone();
+
+    int numTask1 = schedule.getScheduledTasksMap().get("Task1").size();
+    assertThat(numTask1, is(120));
+    int numTask2 = schedule.getScheduledTasksMap().get("Task2").size();
+    assertThat(numTask2, is(2));
+
+    List<TaskStatus> tasks = schedule.getScheduledTasks();
+    assertThat(tasks.get(0).getContext().toString(), is("[Task1,MINUTE,2011-01-17T10:59]"));
+    assertThat(tasks.get(59).getContext().toString(), is("[Task1,MINUTE,2011-01-17T10:00]"));
+    assertThat(tasks.get(60).getContext().toString(), is("[Task2,HOUR,2011-01-17T10]"));
+    assertThat(tasks.get(61).getContext().toString(), is("[Task1,MINUTE,2011-01-17T11:59]"));
+    assertThat(tasks.get(120).getContext().toString(), is("[Task1,MINUTE,2011-01-17T11:00]"));
+    assertThat(tasks.get(121).getContext().toString(), is("[Task2,HOUR,2011-01-17T11]"));
   }
 
   @Test
