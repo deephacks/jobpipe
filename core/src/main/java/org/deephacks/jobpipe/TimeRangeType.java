@@ -1,6 +1,6 @@
 package org.deephacks.jobpipe;
 
-import org.joda.time.DateTime;
+import org.joda.time.*;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -16,12 +16,12 @@ public enum TimeRangeType {
   SECOND {
     DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
 
-    public DateTime next(DateTime dateTime) {
-      return dateTime.plusSeconds(1);
+    public DateTime next(DateTime dateTime, int num) {
+      return dateTime.plusSeconds(1 * num);
     }
 
-    public DateTime prev(DateTime dateTime) {
-      return dateTime.minusSeconds(1);
+    public DateTime prev(DateTime dateTime, int num) {
+      return dateTime.minusSeconds(1 * num);
     }
 
     @Override
@@ -29,22 +29,31 @@ public enum TimeRangeType {
       return FORMAT;
     }
 
+    @Override
+    public int timeBetween(DateTime from, DateTime to) {
+      return Seconds.secondsBetween(from, to).getSeconds();
+    }
   },
 
   MINUTE {
     DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm");
 
-    public DateTime next(DateTime dateTime) {
-      return dateTime.plusMinutes(1);
+    public DateTime next(DateTime dateTime, int num) {
+      return dateTime.plusMinutes(1 * num);
     }
 
-    public DateTime prev(DateTime dateTime) {
-      return dateTime.minusMinutes(1);
+    public DateTime prev(DateTime dateTime, int num) {
+      return dateTime.minusMinutes(1 * num);
     }
 
     @Override
     public DateTimeFormatter format() {
       return FORMAT;
+    }
+
+    @Override
+    public int timeBetween(DateTime from, DateTime to) {
+      return Minutes.minutesBetween(from, to).getMinutes();
     }
 
   },
@@ -52,17 +61,22 @@ public enum TimeRangeType {
   HOUR {
     DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH");
 
-    public DateTime next(DateTime dateTime) {
-      return dateTime.plusHours(1);
+    public DateTime next(DateTime dateTime, int num) {
+      return dateTime.plusHours(1 * num);
     }
 
-    public DateTime prev(DateTime dateTime) {
-      return dateTime.minusHours(1);
+    public DateTime prev(DateTime dateTime, int num) {
+      return dateTime.minusHours(1 * num);
     }
 
     @Override
     public DateTimeFormatter format() {
       return FORMAT;
+    }
+
+    @Override
+    public int timeBetween(DateTime from, DateTime to) {
+      return Hours.hoursBetween(from, to).getHours();
     }
 
   },
@@ -70,17 +84,22 @@ public enum TimeRangeType {
   DAY {
     DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
 
-    public DateTime next(DateTime dateTime) {
-      return dateTime.plusDays(1);
+    public DateTime next(DateTime dateTime, int num) {
+      return dateTime.plusDays(1 * num);
     }
 
-    public DateTime prev(DateTime dateTime) {
-      return dateTime.minusDays(1);
+    public DateTime prev(DateTime dateTime, int num) {
+      return dateTime.minusDays(1 * num);
     }
 
     @Override
     public DateTimeFormatter format() {
       return FORMAT;
+    }
+
+    @Override
+    public int timeBetween(DateTime from, DateTime to) {
+      return Days.daysBetween(from, to).getDays();
     }
 
   },
@@ -88,17 +107,22 @@ public enum TimeRangeType {
   WEEK {
     DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-'W'ww");
 
-    public DateTime next(DateTime dateTime) {
-      return dateTime.plusWeeks(1);
+    public DateTime next(DateTime dateTime, int num) {
+      return dateTime.plusWeeks(1 * num);
     }
 
-    public DateTime prev(DateTime dateTime) {
-      return dateTime.minusWeeks(1);
+    public DateTime prev(DateTime dateTime, int num) {
+      return dateTime.minusWeeks(1 * num);
     }
 
     @Override
     public DateTimeFormatter format() {
       return FORMAT;
+    }
+
+    @Override
+    public int timeBetween(DateTime from, DateTime to) {
+      return Weeks.weeksBetween(from, to).getWeeks();
     }
 
   },
@@ -106,12 +130,12 @@ public enum TimeRangeType {
   MONTH {
     DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM");
 
-    public DateTime next(DateTime dateTime) {
-      return dateTime.plusMonths(1);
+    public DateTime next(DateTime dateTime, int num) {
+      return dateTime.plusMonths(1 * num);
     }
 
-    public DateTime prev(DateTime dateTime) {
-      return dateTime.minusMonths(1);
+    public DateTime prev(DateTime dateTime, int num) {
+      return dateTime.minusMonths(1 * num);
     }
 
     @Override
@@ -119,13 +143,20 @@ public enum TimeRangeType {
       return FORMAT;
     }
 
+    @Override
+    public int timeBetween(DateTime from, DateTime to) {
+      return Months.monthsBetween(from, to).getMonths();
+    }
+
   };
 
-  public abstract DateTime next(DateTime dateTime);
+  public abstract DateTime next(DateTime dateTime, int num);
 
-  public abstract DateTime prev(DateTime dateTime);
+  public abstract DateTime prev(DateTime dateTime, int num);
 
   public abstract DateTimeFormatter format();
+
+  public abstract int timeBetween(DateTime from, DateTime to);
 
   public static TimeRangeType parse(String date) {
     if (date == null || date.length() == 0) {
@@ -165,9 +196,10 @@ public enum TimeRangeType {
     ArrayList<TimeRange> list = new ArrayList<>();
 
     while (from.isBefore(range.to())) {
-      list.add(new TimeRange(from, this));
-      from = this.next(from);
+      list.add(new TimeRange(from, this, range.intervalsBetween()));
+      from = this.next(from, range.intervalsBetween());
     }
     return list;
   }
+
 }

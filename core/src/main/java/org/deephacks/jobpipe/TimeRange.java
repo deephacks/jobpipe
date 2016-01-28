@@ -7,17 +7,42 @@ import java.util.List;
 
 public class TimeRange {
 
-  private DateTime from;
-  private TimeRangeType type;
+  private final DateTime from;
+  private final DateTime to;
+  private final TimeRangeType type;
+  private final int intervalsBetween;
 
   public TimeRange(String date) {
-    this.from = new DateTime(date);
-    this.type = TimeRangeType.parse(date);
+    if (date.contains("/")) {
+      String[] interval = date.split("/");
+      if (interval.length != 2) {
+        throw new IllegalArgumentException("Invalid time range format " + date);
+      }
+      TimeRange from = new TimeRange(interval[0]);
+      TimeRange to = new TimeRange(interval[1]);
+      if (from.getType() != to.getType()) {
+        throw new IllegalArgumentException("Interval have different from and to time range types.");
+      }
+      if (from.from.isAfter(to.from)) {
+        throw new IllegalArgumentException("Interval 'from' is after 'to'");
+      }
+      this.type = from.getType();
+      this.intervalsBetween = this.type.timeBetween(from.from, to.from);
+      this.from = from.from();
+      this.to = to.from();
+    } else {
+      this.from = new DateTime(date);
+      this.type = TimeRangeType.parse(date);
+      this.intervalsBetween = 1;
+      this.to = this.type.next(from, intervalsBetween);
+    }
   }
 
-  TimeRange(DateTime dateTime, TimeRangeType type) {
+  TimeRange(DateTime dateTime, TimeRangeType type, int numIntervals) {
     this.from = dateTime;
     this.type = type;
+    this.intervalsBetween = numIntervals;
+    this.to = type.next(from, numIntervals);
   }
 
   public List<DateTime> days() {
@@ -51,6 +76,10 @@ public class TimeRange {
     return list;
   }
 
+  public int intervalsBetween() {
+    return intervalsBetween;
+  }
+
   public TimeRangeType getType() {
     return type;
   }
@@ -64,11 +93,11 @@ public class TimeRange {
   }
 
   public TimeRange next() {
-    return new TimeRange(type.next(from), type);
+    return new TimeRange(type.next(from, intervalsBetween), type, intervalsBetween);
   }
 
   public TimeRange prev() {
-    return new TimeRange(type.prev(from), type);
+    return new TimeRange(type.prev(from, intervalsBetween), type, intervalsBetween);
   }
 
   public String format() {
