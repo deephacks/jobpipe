@@ -1,9 +1,9 @@
 package org.deephacks.jobpipe;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +14,7 @@ public enum TimeRangeType {
    */
 
   SECOND {
-    SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     public DateTime next(DateTime dateTime) {
       return dateTime.plusSeconds(1);
@@ -25,14 +25,14 @@ public enum TimeRangeType {
     }
 
     @Override
-    public SimpleDateFormat format() {
+    public DateTimeFormatter format() {
       return FORMAT;
     }
 
   },
 
   MINUTE {
-    SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+    DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm");
 
     public DateTime next(DateTime dateTime) {
       return dateTime.plusMinutes(1);
@@ -43,14 +43,14 @@ public enum TimeRangeType {
     }
 
     @Override
-    public SimpleDateFormat format() {
+    public DateTimeFormatter format() {
       return FORMAT;
     }
 
   },
 
   HOUR {
-    SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH");
+    DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH");
 
     public DateTime next(DateTime dateTime) {
       return dateTime.plusHours(1);
@@ -61,14 +61,14 @@ public enum TimeRangeType {
     }
 
     @Override
-    public SimpleDateFormat format() {
+    public DateTimeFormatter format() {
       return FORMAT;
     }
 
   },
 
   DAY {
-    SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     public DateTime next(DateTime dateTime) {
       return dateTime.plusDays(1);
@@ -79,14 +79,14 @@ public enum TimeRangeType {
     }
 
     @Override
-    public SimpleDateFormat format() {
+    public DateTimeFormatter format() {
       return FORMAT;
     }
 
   },
 
   WEEK {
-    SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-'W'ww");
+    DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-'W'ww");
 
     public DateTime next(DateTime dateTime) {
       return dateTime.plusWeeks(1);
@@ -97,14 +97,14 @@ public enum TimeRangeType {
     }
 
     @Override
-    public SimpleDateFormat format() {
+    public DateTimeFormatter format() {
       return FORMAT;
     }
 
   },
 
   MONTH {
-    SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM");
+    DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM");
 
     public DateTime next(DateTime dateTime) {
       return dateTime.plusMonths(1);
@@ -115,7 +115,7 @@ public enum TimeRangeType {
     }
 
     @Override
-    public SimpleDateFormat format() {
+    public DateTimeFormatter format() {
       return FORMAT;
     }
 
@@ -125,7 +125,7 @@ public enum TimeRangeType {
 
   public abstract DateTime prev(DateTime dateTime);
 
-  public abstract SimpleDateFormat format();
+  public abstract DateTimeFormatter format();
 
   public static TimeRangeType parse(String date) {
     if (date == null || date.length() == 0) {
@@ -147,11 +147,11 @@ public enum TimeRangeType {
     throw new IllegalArgumentException("Could not parse time " + date);
   }
 
-  private static boolean canParse(SimpleDateFormat format, String date) {
+  private static boolean canParse(DateTimeFormatter format, String date) {
     try {
-      format.parse(date.toUpperCase());
+      format.parseDateTime(date.toUpperCase());
       return true;
-    } catch (ParseException e) {
+    } catch (Exception e) {
       return false;
     }
   }

@@ -72,12 +72,12 @@ public class TimeRange {
   }
 
   public String format() {
-    return type.format().format(from.toDate());
+    return type.format().print(from);
   }
 
   @Override
   public String toString() {
-    return type + ","  + type.format().format(from.toDate());
+    return type + ","  + type.format().print(from);
   }
 
   @Override
