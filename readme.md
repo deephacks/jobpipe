@@ -15,7 +15,7 @@ between tasks as a sequence of continuous executions in time. These tasks can be
 
 Unlike other workflow schedulers like Azkaban and Oozie, Jobpipe is a minimal library with zero dependencies where everything is expressed in code, no XML. Jobpipe tries hard to be unopinionated on how users should build their applications with regards to logging, configuration, monitoring, dependency injection, persistence, security, thread execution etc. Most of these concerns can be implemented by users as they see fit. 
 
-[Download](http://search.maven.org/remotecontent?filepath=org/deephacks/jobpipe/jobpipe-cli/0.0.3/jobpipe-cli-0.0.3-capsule-fat.jar) the latest jobpipe release.
+[Download](http://search.maven.org/remotecontent?filepath=org/deephacks/jobpipe/jobpipe-cli/0.0.6/jobpipe-cli-0.0.6-capsule-fat.jar) the latest jobpipe release.
 
 #### Example 1
 
