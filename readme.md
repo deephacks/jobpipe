@@ -67,7 +67,7 @@ The execution of this schedule may yield the following order of execution at exa
 Tasks can have different time ranges.
 
 ```java
-    JobSchedule schedule = JobSchedule.newSchedule(context)
+    JobSchedule schedule = JobSchedule.newSchedule("2016-01-10")
       .task(new Task1()).timeRange(HOUR).add()
       .task(new Task2()).timeRange(DAY).deps(Task1.class).add()
       .execute();
