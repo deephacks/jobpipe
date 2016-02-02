@@ -7,8 +7,9 @@ import java.util.regex.Pattern;
 
 public class Cli {
 
+
   public static void main(String[] args) throws Exception {
-    OptionParser parser = new OptionParser();
+    OptionParser parser = new OptionParser(false);
     parser.formatHelpWith(new OptionFormatter());
     parser.allowsUnrecognizedOptions();
 
@@ -45,13 +46,13 @@ public class Cli {
       System.out.println("Missing 'cls'");
       return;
     }
-    if (options.has("range")) {
+    if (options.has(optRange)) {
       range = new TimeRange(options.valueOf(optRange));
     } else {
       System.out.println("Missing 'range'");
       return;
     }
-    if (options.has("task")) {
+    if (options.has(optTaskId)) {
       taskId = options.valueOf(optTaskId);
     }
     ArrayList<Pipeline> pipelines = new ArrayList<>();
